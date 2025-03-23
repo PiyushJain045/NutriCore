@@ -1,5 +1,6 @@
 
 import Header from "@/components/Header";
+import ImageCarousel from "@/components/ImageCarousel";
 import ActivitySummary from "@/components/ActivitySummary";
 import QuickStart from "@/components/QuickStart";
 import MotivationalBanner from "@/components/MotivationalBanner";
@@ -12,6 +13,7 @@ const Index = () => {
       <Header userName="Alex" />
       
       <main className="pb-20">
+        <ImageCarousel />
         <ActivitySummary />
         <QuickStart />
         <MotivationalBanner />
