@@ -9,7 +9,7 @@ import Navigation from "@/components/Navigation";
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-fit-background">
+    <div className="min-h-screen bg-gradient-to-b from-white via-fit-purple-softer/30 to-white">
       <Header userName="Alex" />
       
       <main className="pb-20">

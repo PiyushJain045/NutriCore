@@ -116,6 +116,14 @@
   .animate-subtle {
     @apply transition-all duration-300 ease-in-out;
   }
+  
+  .purple-gradient {
+    @apply bg-gradient-to-b from-white via-fit-purple-softer/30 to-white;
+  }
+  
+  .purple-card {
+    @apply bg-gradient-to-br from-white to-fit-purple-softer/30 shadow-sm border border-fit-purple-softer/20 rounded-2xl;
+  }
 }
 
 /* Smooth scrolling */
