@@ -1,6 +1,5 @@
-
 import { useState } from "react";
-import { Activity, Bluetooth, Clock, Heart, Smartphone, Sleep, Link, WifiOff } from "lucide-react";
+import { Activity, Bluetooth, Clock, Heart, Smartphone, Moon, Link, WifiOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -12,7 +11,6 @@ import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import Navigation from "@/components/Navigation";
 
-// List of supported smartwatch models
 const supportedDevices = [
   { id: 1, name: "FitBit Sense 2", compatibility: "High", metrics: ["Steps", "Heart Rate", "Sleep", "Activity"] },
   { id: 2, name: "Apple Watch Series 8", compatibility: "High", metrics: ["Steps", "Heart Rate", "Sleep", "Activity", "ECG"] },
@@ -36,9 +34,8 @@ const SmartWatch = () => {
   const handleConnectClick = () => {
     setConnectionStatus("connecting");
     
-    // Simulate connection process with timeout
     setTimeout(() => {
-      if (Math.random() > 0.2) { // 80% success rate for demo
+      if (Math.random() > 0.2) {
         setConnectionStatus("connected");
         toast({
           title: "Connection Successful",
@@ -129,7 +126,7 @@ const SmartWatch = () => {
                     <span className="text-sm font-medium">Activity</span>
                   </div>
                   <div className="flex flex-col items-center justify-center p-4 bg-white/80 rounded-lg">
-                    <Sleep className="w-8 h-8 text-fit-purple mb-2" />
+                    <Moon className="w-8 h-8 text-fit-purple mb-2" />
                     <span className="text-sm font-medium">Sleep</span>
                   </div>
                   <div className="flex flex-col items-center justify-center p-4 bg-white/80 rounded-lg">
@@ -203,7 +200,7 @@ const SmartWatch = () => {
                   </div>
                   <div className="flex justify-between items-center">
                     <div className="flex items-center gap-2">
-                      <Sleep className="text-fit-purple" />
+                      <Moon className="text-fit-purple" />
                       <span>Sleep Tracking</span>
                     </div>
                     <Switch 
