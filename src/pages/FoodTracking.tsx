@@ -1,6 +1,6 @@
 
-import { useState } from 'react';
-import { ArrowLeft, Camera, FileText, Search, PlusCircle, X } from 'lucide-react';
+import { useState, useRef } from 'react';
+import { ArrowLeft, Camera, FileText, Search, PlusCircle, X, Upload } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
@@ -16,6 +16,10 @@ const FoodTracking = () => {
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showManualEntry, setShowManualEntry] = useState(false);
+  const [isCameraActive, setIsCameraActive] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleImageUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -34,6 +38,59 @@ const FoodTracking = () => {
       }
     };
     reader.readAsDataURL(file);
+  };
+
+  const activateCamera = async () => {
+    try {
+      setIsCameraActive(true);
+      const stream = await navigator.mediaDevices.getUserMedia({ 
+        video: { facingMode: 'environment' } 
+      });
+      
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+    } catch (error) {
+      console.error('Error accessing camera:', error);
+      toast.error("Could not access camera. Please check permissions.");
+      setIsCameraActive(false);
+    }
+  };
+
+  const takePicture = () => {
+    if (!videoRef.current || !canvasRef.current) return;
+    
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    const context = canvas.getContext('2d');
+    
+    if (!context) return;
+    
+    // Set canvas dimensions to match video
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    
+    // Draw the video frame to the canvas
+    context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    
+    // Convert canvas to data URL
+    const imageDataUrl = canvas.toDataURL('image/jpeg');
+    setSelectedImage(imageDataUrl);
+    
+    // Stop camera stream
+    stopCamera();
+  };
+
+  const stopCamera = () => {
+    if (videoRef.current && videoRef.current.srcObject) {
+      const stream = videoRef.current.srcObject as MediaStream;
+      const tracks = stream.getTracks();
+      
+      tracks.forEach(track => track.stop());
+      videoRef.current.srcObject = null;
+    }
+    
+    setIsCameraActive(false);
   };
 
   const analyzeImage = () => {
@@ -63,6 +120,10 @@ const FoodTracking = () => {
     setSelectedImage(null);
   };
 
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
+  };
+
   return (
     <div className="min-h-screen bg-fit-background">
       <header className="px-6 pt-12 pb-4 flex items-center">
@@ -76,7 +137,33 @@ const FoodTracking = () => {
       </header>
 
       <main className="pb-20 px-6">
-        {!showManualEntry ? (
+        {isCameraActive ? (
+          <div className="space-y-4">
+            <div className="relative rounded-lg overflow-hidden bg-black">
+              <video 
+                ref={videoRef} 
+                autoPlay 
+                playsInline 
+                className="w-full h-auto"
+              />
+              <canvas ref={canvasRef} className="hidden" />
+            </div>
+            <div className="flex justify-center gap-4">
+              <Button 
+                onClick={takePicture}
+                className="bg-fit-purple hover:bg-fit-purple-dark"
+              >
+                Take Photo
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={stopCamera}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        ) : !showManualEntry ? (
           <div className="space-y-6">
             <Card className="overflow-hidden">
               <CardContent className="p-4">
@@ -86,14 +173,33 @@ const FoodTracking = () => {
 
                   <div className="flex flex-col md:flex-row gap-4 justify-center">
                     <div className="flex-1">
-                      <Label htmlFor="food-image" className="cursor-pointer w-full">
-                        <div className="flex flex-col items-center p-6 border-2 border-dashed rounded-lg hover:bg-gray-50 transition-colors">
+                      <Button 
+                        onClick={activateCamera}
+                        variant="outline" 
+                        className="w-full h-full p-6 border-2 border-dashed"
+                      >
+                        <div className="flex flex-col items-center">
                           <Camera className="h-10 w-10 text-fit-purple mb-2" />
                           <p className="font-medium text-fit-primary">Take a Photo</p>
-                          <p className="text-xs text-gray-500 mt-1">Upload an image of your food</p>
+                          <p className="text-xs text-gray-500 mt-1">Use your camera</p>
                         </div>
-                      </Label>
+                      </Button>
+                    </div>
+                    
+                    <div className="flex-1">
+                      <Button 
+                        onClick={triggerFileInput}
+                        variant="outline" 
+                        className="w-full h-full p-6 border-2 border-dashed"
+                      >
+                        <div className="flex flex-col items-center">
+                          <Upload className="h-10 w-10 text-fit-purple mb-2" />
+                          <p className="font-medium text-fit-primary">Upload Image</p>
+                          <p className="text-xs text-gray-500 mt-1">Select from device</p>
+                        </div>
+                      </Button>
                       <Input 
+                        ref={fileInputRef}
                         id="food-image" 
                         type="file" 
                         accept="image/*" 
