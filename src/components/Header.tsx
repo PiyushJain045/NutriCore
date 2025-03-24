@@ -1,49 +1,47 @@
 
-import { useState, useEffect } from 'react';
-import { Bell, ChevronDown } from 'lucide-react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Bell } from "lucide-react";
+import { Link } from "react-router-dom";
+import RegisterButton from "./RegisterButton";
 
 interface HeaderProps {
-  userName?: string;
+  userName: string;
 }
 
-const Header = ({ userName = "Alex" }: HeaderProps) => {
-  const [greeting, setGreeting] = useState("");
-
-  useEffect(() => {
-    const hour = new Date().getHours();
-    
-    if (hour < 12) {
-      setGreeting("Good morning");
-    } else if (hour < 18) {
-      setGreeting("Good afternoon");
-    } else {
-      setGreeting("Good evening");
-    }
-  }, []);
+const Header = ({ userName }: HeaderProps) => {
+  const isLoggedIn = userName !== "Guest";
 
   return (
-    <header className="px-6 pt-12 pb-4 flex items-center justify-between animate-fade-in">
-      <div className="flex items-center space-x-3">
-        <Avatar className="h-12 w-12 border-2 border-fit-secondary shadow-sm">
-          <AvatarImage src="/placeholder.svg" alt={userName} />
-          <AvatarFallback className="bg-fit-secondary text-white">{userName.charAt(0)}</AvatarFallback>
-        </Avatar>
-        <div>
-          <p className="text-fit-muted text-sm">{greeting}</p>
-          <h1 className="text-xl font-semibold text-fit-primary flex items-center">
-            {userName}
-            <ChevronDown className="ml-1 h-4 w-4 text-fit-muted" />
+    <header className="bg-white shadow-sm py-4 px-4 sticky top-0 z-30">
+      <div className="max-w-md mx-auto flex justify-between items-center">
+        <Link to="/" className="flex items-center">
+          <h1 className="text-xl font-bold text-fit-purple">
+            Fit<span className="text-fit-accent">Hub</span>
           </h1>
+        </Link>
+        
+        <div className="flex items-center gap-3">
+          {isLoggedIn ? (
+            <>
+              <button className="relative">
+                <Bell className="w-6 h-6 text-gray-600" />
+                <span className="absolute -top-1 -right-1 bg-fit-purple text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                  3
+                </span>
+              </button>
+              <Link 
+                to="/profile" 
+                className="flex items-center gap-1"
+              >
+                <div className="w-8 h-8 rounded-full bg-fit-purple-softer flex items-center justify-center text-fit-purple-text font-medium">
+                  {userName.charAt(0)}
+                </div>
+              </Link>
+            </>
+          ) : (
+            <RegisterButton />
+          )}
         </div>
       </div>
-      <button 
-        className="relative p-2 rounded-full bg-fit-card text-fit-primary hover:bg-fit-secondary/10 transition-colors"
-        aria-label="Notifications"
-      >
-        <Bell className="h-5 w-5" />
-        <span className="absolute top-1 right-1 w-2 h-2 bg-fit-accent rounded-full"></span>
-      </button>
     </header>
   );
 };
