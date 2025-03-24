@@ -12,6 +12,7 @@ import Community from "./pages/Community";
 import Profile from "./pages/Profile";
 import SmartWatch from "./pages/SmartWatch";
 import Registration from "./pages/Registration";
+import FoodTracking from "./pages/FoodTracking";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -27,6 +28,7 @@ const App = () => (
           <Route path="/workouts" element={<Workouts />} />
           <Route path="/workouts/:id" element={<WorkoutDetail />} />
           <Route path="/nutrition" element={<Nutrition />} />
+          <Route path="/food-tracking" element={<FoodTracking />} />
           <Route path="/community" element={<Community />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/smartwatch" element={<SmartWatch />} />

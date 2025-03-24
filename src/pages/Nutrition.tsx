@@ -1,10 +1,10 @@
-
 import { ArrowLeft, Apple, PieChart, Search, Plus } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { CircleProgress } from '@/components/CircleProgress';
+import { Link } from 'react-router-dom';
 
 interface NutritionSummaryProps {
   calories: { consumed: number; goal: number };
@@ -190,9 +190,12 @@ const Nutrition = () => {
             variant="ghost" 
             size="sm" 
             className="p-0 h-auto flex items-center text-xs font-medium text-fit-accent hover:text-fit-accent/80 hover:bg-transparent"
+            asChild
           >
-            <Plus className="h-3 w-3 mr-1" />
-            Add Meal
+            <Link to="/food-tracking">
+              <Plus className="h-3 w-3 mr-1" />
+              Add Meal
+            </Link>
           </Button>
         </div>
         
