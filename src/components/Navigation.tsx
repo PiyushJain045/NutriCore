@@ -1,5 +1,5 @@
 
-import { Home, Dumbbell, Apple, Users, User } from 'lucide-react';
+import { Home, Dumbbell, Apple, Users, User, Watch } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -39,6 +39,14 @@ const Navigation = () => {
           >
             <Apple className="nav-icon" />
             <span className="text-xs">Nutrition</span>
+          </button>
+          
+          <button 
+            onClick={() => handleNavigation('/smartwatch')}
+            className={`nav-item ${activeTab === '/smartwatch' ? 'active' : 'text-fit-muted'}`}
+          >
+            <Watch className="nav-icon" />
+            <span className="text-xs">Devices</span>
           </button>
           
           <button 
