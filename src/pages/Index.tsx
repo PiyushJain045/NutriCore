@@ -6,6 +6,8 @@ import QuickStart from "@/components/QuickStart";
 import MotivationalBanner from "@/components/MotivationalBanner";
 import WorkoutSection from "@/components/WorkoutSection";
 import Navigation from "@/components/Navigation";
+import AnalyticsSection from "@/components/AnalyticsSection";
+import NewsSection from "@/components/NewsSection";
 import { Button } from "@/components/ui/button";
 import { UserPlus } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -28,8 +30,13 @@ const Index = () => {
         <ImageCarousel />
         <ActivitySummary />
         <QuickStart />
-        <MotivationalBanner />
-        <WorkoutSection />
+        
+        <div className="max-w-md mx-auto px-4 py-4">
+          <AnalyticsSection />
+          <MotivationalBanner />
+          <WorkoutSection />
+          <NewsSection />
+        </div>
       </main>
       
       <Navigation />
