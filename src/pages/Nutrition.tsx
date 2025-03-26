@@ -1,10 +1,13 @@
-import { ArrowLeft, Apple, PieChart, Search, Plus } from 'lucide-react';
+
+import { ArrowLeft, Apple, PieChart, Search, Plus, Brain, Utensils } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { CircleProgress } from '@/components/CircleProgress';
 import { Link } from 'react-router-dom';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 
 interface NutritionSummaryProps {
   calories: { consumed: number; goal: number };
@@ -175,7 +178,7 @@ const Nutrition = () => {
                 <span className="text-xs text-fit-muted ml-auto">{Math.round((nutritionSummary.carbs.consumed / nutritionSummary.calories.consumed * 4) * 100)}%</span>
               </div>
               
-              <div className="flex items-center">
+              <div className="flex items-center mb-2">
                 <div className="h-3 w-3 rounded-full bg-green-500 mr-2"></div>
                 <span className="text-xs text-fit-primary">Fat</span>
                 <span className="text-xs text-fit-muted ml-auto">{Math.round((nutritionSummary.fat.consumed / nutritionSummary.calories.consumed * 9) * 100)}%</span>
@@ -186,17 +189,42 @@ const Nutrition = () => {
         
         <div className="mb-4 flex justify-between items-center">
           <h2 className="text-sm font-medium text-fit-muted">Today's Meals</h2>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="p-0 h-auto flex items-center text-xs font-medium text-fit-accent hover:text-fit-accent/80 hover:bg-transparent"
-            asChild
-          >
-            <Link to="/food-tracking">
-              <Plus className="h-3 w-3 mr-1" />
-              Add Meal
-            </Link>
-          </Button>
+          
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <HoverCard>
+                  <HoverCardTrigger asChild>
+                    <Button 
+                      className="relative overflow-hidden font-bold text-white shadow-lg transition-all duration-300 
+                                transform hover:scale-105 active:scale-95"
+                      style={{
+                        background: "linear-gradient(45deg, #0EA5E9, #10B981)",
+                        padding: "0.625rem 1.25rem",
+                        borderRadius: "0.75rem"
+                      }}
+                      asChild
+                    >
+                      <Link to="/food-tracking" className="flex items-center">
+                        <Utensils className="h-5 w-5 mr-1" />
+                        <span className="mr-1">Smart Add Meal</span>
+                        <Brain className="h-4 w-4 text-white/80" />
+                      </Link>
+                    </Button>
+                  </HoverCardTrigger>
+                  <HoverCardContent className="p-3 w-56 text-center">
+                    <div className="text-sm font-medium">AI-Powered Meal Tracking!</div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Just add your food name and serving size, our AI will calculate all your macros automatically.
+                    </p>
+                  </HoverCardContent>
+                </HoverCard>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Let AI track your nutrition!</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
         
         {meals.map(meal => (
