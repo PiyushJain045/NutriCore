@@ -199,7 +199,7 @@ const Nutrition = () => {
                       className="relative overflow-hidden font-bold text-white shadow-lg transition-all duration-300 
                                 transform hover:scale-105 active:scale-95"
                       style={{
-                        background: "linear-gradient(45deg, #0EA5E9, #10B981)",
+                        background: "linear-gradient(45deg, #0f766e, #059669)",
                         padding: "0.625rem 1.25rem",
                         borderRadius: "0.75rem"
                       }}

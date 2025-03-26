@@ -1,5 +1,5 @@
 import { useState, useRef } from 'react';
-import { ArrowLeft, Camera, FileText, Search, PlusCircle, X, Upload } from 'lucide-react';
+import { ArrowLeft, Camera, FileText, Search, PlusCircle, X, Upload, Utensils, Brain } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
@@ -16,6 +16,7 @@ const FoodTracking = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [showManualEntry, setShowManualEntry] = useState(false);
   const [isCameraActive, setIsCameraActive] = useState(false);
+  const [showToolDescription, setShowToolDescription] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -136,7 +137,60 @@ const FoodTracking = () => {
       </header>
 
       <main className="pb-20 px-6">
-        {isCameraActive ? (
+        {showToolDescription ? (
+          <Card className="overflow-hidden border-2 border-emerald-700/20 shadow-lg animate-fade-in mb-6">
+            <CardContent className="p-6">
+              <div className="flex items-center mb-4">
+                <div className="p-3 rounded-full bg-emerald-700/10 mr-4">
+                  <Brain className="h-8 w-8 text-emerald-700" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-emerald-800">Smart Meal Tracking</h2>
+                  <p className="text-sm text-gray-500">AI-powered nutrition analysis</p>
+                </div>
+              </div>
+              
+              <p className="text-gray-700 mb-4">
+                Our AI-powered food tracking makes nutrition logging effortless. Simply take a photo of your meal or enter 
+                basic information, and our advanced system will automatically calculate all your macros and nutrition data.
+              </p>
+              
+              <div className="grid grid-cols-1 gap-3 mb-4">
+                <div className="flex items-start">
+                  <div className="p-1.5 rounded-full bg-emerald-100 mr-3 mt-0.5">
+                    <div className="h-4 w-4 text-emerald-700">✓</div>
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    <span className="font-medium">Time-Saving:</span> No need to search through extensive food databases
+                  </p>
+                </div>
+                <div className="flex items-start">
+                  <div className="p-1.5 rounded-full bg-emerald-100 mr-3 mt-0.5">
+                    <div className="h-4 w-4 text-emerald-700">✓</div>
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    <span className="font-medium">Accurate:</span> Precise macro and calorie calculations
+                  </p>
+                </div>
+                <div className="flex items-start">
+                  <div className="p-1.5 rounded-full bg-emerald-100 mr-3 mt-0.5">
+                    <div className="h-4 w-4 text-emerald-700">✓</div>
+                  </div>
+                  <p className="text-sm text-gray-600">
+                    <span className="font-medium">Effortless:</span> Just snap a photo or enter basic details
+                  </p>
+                </div>
+              </div>
+              
+              <Button 
+                onClick={() => setShowToolDescription(false)}
+                className="w-full bg-emerald-700 hover:bg-emerald-800 text-white font-bold py-3 px-6 rounded-xl shadow-lg transform hover:scale-105 transition-all"
+              >
+                Get Started
+              </Button>
+            </CardContent>
+          </Card>
+        ) : isCameraActive ? (
           <div className="space-y-4">
             <div className="relative rounded-lg overflow-hidden bg-black">
               <video 
@@ -258,6 +312,14 @@ const FoodTracking = () => {
             initialData={selectedImage ? { name: "", servingSize: "" } : undefined}
           />
         )}
+          
+        <input 
+          type="file" 
+          ref={fileInputRef} 
+          className="hidden" 
+          accept="image/*" 
+          onChange={handleImageUpload}
+        />
       </main>
 
       <Navigation />
