@@ -2,7 +2,7 @@
 import React from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { News, ArrowUp, Heart } from "lucide-react";
+import { Bell, ArrowUp, Heart } from "lucide-react";
 
 const newsItems = [
   {
@@ -48,7 +48,7 @@ const NewsSection = () => {
     <section className="mb-12">
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center gap-2">
-          <News className="h-5 w-5 text-fit-purple" />
+          <Bell className="h-5 w-5 text-fit-purple" />
           <h2 className="text-xl font-bold text-fit-purple">Health & Wellness News</h2>
         </div>
       </div>
