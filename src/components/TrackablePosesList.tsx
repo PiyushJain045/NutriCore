@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { X, ChevronRight, Camera, Yoga, Dumbbell, Activity } from 'lucide-react';
+import { X, ChevronRight, Camera, Dumbbell, Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
   Collapsible,
@@ -23,7 +22,7 @@ const poseCategories: PoseCategory[] = [
   {
     id: 'yoga',
     name: 'Yoga Poses',
-    icon: Yoga,
+    icon: Activity,
     poses: [
       { id: 'y1', name: 'Downward Dog', difficulty: 'beginner' },
       { id: 'y2', name: 'Warrior I', difficulty: 'beginner' },
