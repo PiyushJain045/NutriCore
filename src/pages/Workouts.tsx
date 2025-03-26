@@ -6,6 +6,7 @@ import Navigation from '@/components/Navigation';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import TrackablePosesList from '@/components/TrackablePosesList';
 
 const workoutCategories = [
   { id: 'all', name: 'All' },
@@ -85,6 +86,7 @@ const WorkoutCard = ({ workout }: { workout: typeof workouts[0] }) => {
 const Workouts = () => {
   const navigate = useNavigate();
   const [activeCategory, setActiveCategory] = useState('all');
+  const [showTrackablePoses, setShowTrackablePoses] = useState(false);
 
   const filteredWorkouts = activeCategory === 'all' 
     ? workouts 
@@ -133,7 +135,11 @@ const Workouts = () => {
               <p className="text-xs text-fit-muted mb-2">
                 Get real-time feedback on your form with our new camera-based tracking.
               </p>
-              <Button size="sm" className="h-8 text-xs bg-fit-accent hover:bg-fit-accent/90">
+              <Button 
+                size="sm" 
+                className="h-8 text-xs bg-fit-accent hover:bg-fit-accent/90"
+                onClick={() => setShowTrackablePoses(true)}
+              >
                 Try Now
               </Button>
             </div>
@@ -149,6 +155,10 @@ const Workouts = () => {
           ))}
         </div>
       </main>
+
+      {showTrackablePoses && (
+        <TrackablePosesList onClose={() => setShowTrackablePoses(false)} />
+      )}
 
       <Navigation />
     </div>
