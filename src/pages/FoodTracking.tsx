@@ -258,7 +258,10 @@ const FoodTracking = () => {
             )}
           </div>
         ) : (
-          <FoodEntryForm onBack={() => setShowManualEntry(false)} />
+          <FoodEntryForm 
+            onBack={() => setShowManualEntry(false)} 
+            initialData={selectedImage ? { name: "", servingSize: "" } : undefined}
+          />
         )}
       </main>
 
