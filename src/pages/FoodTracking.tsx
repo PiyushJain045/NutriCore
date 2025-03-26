@@ -1,4 +1,3 @@
-
 import { useState, useRef } from 'react';
 import { ArrowLeft, Camera, FileText, Search, PlusCircle, X, Upload } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -165,62 +164,58 @@ const FoodTracking = () => {
           </div>
         ) : !showManualEntry ? (
           <div className="space-y-6">
-            <Card className="overflow-hidden">
+            <Card className="overflow-hidden border-2 border-fit-purple/20 shadow-lg">
               <CardContent className="p-4">
                 <div className="text-center py-4">
-                  <h2 className="text-lg font-medium mb-2">How would you like to add your food?</h2>
-                  <p className="text-sm text-gray-500 mb-6">Take a photo or enter details manually</p>
+                  <h2 className="text-lg font-bold mb-2 text-fit-primary">How Would You Like to Add Your Food?</h2>
+                  <p className="text-sm text-gray-500 mb-6">Choose the most convenient method for you</p>
 
-                  <div className="flex flex-col md:flex-row gap-4 justify-center">
-                    <div className="flex-1">
-                      <Button 
-                        onClick={activateCamera}
-                        variant="outline" 
-                        className="w-full h-full p-6 border-2 border-dashed"
-                      >
-                        <div className="flex flex-col items-center">
-                          <Camera className="h-10 w-10 text-fit-purple mb-2" />
-                          <p className="font-medium text-fit-primary">Take a Photo</p>
-                          <p className="text-xs text-gray-500 mt-1">Use your camera</p>
-                        </div>
-                      </Button>
-                    </div>
+                  <div className="grid md:grid-cols-3 gap-4">
+                    <Button 
+                      onClick={activateCamera}
+                      variant="outline" 
+                      className="w-full h-full p-6 border-2 border-fit-purple/30 hover:border-fit-purple hover:bg-fit-purple/10 transition-all group"
+                    >
+                      <div className="flex flex-col items-center">
+                        <Camera className="h-10 w-10 text-fit-purple mb-2 group-hover:scale-110 transition-transform" />
+                        <p className="font-semibold text-fit-primary group-hover:text-fit-purple">Take a Photo</p>
+                        <p className="text-xs text-gray-500 mt-1">Snap your meal</p>
+                      </div>
+                    </Button>
                     
-                    <div className="flex-1">
-                      <Button 
-                        onClick={triggerFileInput}
-                        variant="outline" 
-                        className="w-full h-full p-6 border-2 border-dashed"
-                      >
-                        <div className="flex flex-col items-center">
-                          <Upload className="h-10 w-10 text-fit-purple mb-2" />
-                          <p className="font-medium text-fit-primary">Upload Image</p>
-                          <p className="text-xs text-gray-500 mt-1">Select from device</p>
-                        </div>
-                      </Button>
-                      <Input 
-                        ref={fileInputRef}
-                        id="food-image" 
-                        type="file" 
-                        accept="image/*" 
-                        className="hidden" 
-                        onChange={handleImageUpload} 
-                      />
-                    </div>
+                    <Button 
+                      onClick={triggerFileInput}
+                      variant="outline" 
+                      className="w-full h-full p-6 border-2 border-fit-purple/30 hover:border-fit-purple hover:bg-fit-purple/10 transition-all group"
+                    >
+                      <div className="flex flex-col items-center">
+                        <Upload className="h-10 w-10 text-fit-purple mb-2 group-hover:scale-110 transition-transform" />
+                        <p className="font-semibold text-fit-primary group-hover:text-fit-purple">Upload Image</p>
+                        <p className="text-xs text-gray-500 mt-1">From your device</p>
+                      </div>
+                    </Button>
                     
-                    <div className="flex-1">
-                      <Button 
-                        variant="outline" 
-                        className="w-full h-full p-6 border-2 border-dashed"
-                        onClick={() => setShowManualEntry(true)}
-                      >
-                        <div className="flex flex-col items-center">
-                          <FileText className="h-10 w-10 text-fit-purple mb-2" />
-                          <p className="font-medium text-fit-primary">Manual Entry</p>
-                          <p className="text-xs text-gray-500 mt-1">Enter food details yourself</p>
-                        </div>
-                      </Button>
-                    </div>
+                    <Button 
+                      variant="outline" 
+                      className="w-full h-full p-6 border-2 border-fit-purple/30 hover:border-fit-purple hover:bg-fit-purple/10 transition-all group"
+                      onClick={() => setShowManualEntry(true)}
+                    >
+                      <div className="flex flex-col items-center">
+                        <FileText className="h-10 w-10 text-fit-purple mb-2 group-hover:scale-110 transition-transform" />
+                        <p className="font-semibold text-fit-primary group-hover:text-fit-purple">Manual Entry</p>
+                        <p className="text-xs text-gray-500 mt-1">Enter details</p>
+                      </div>
+                    </Button>
+                  </div>
+                  
+                  <div className="mt-6 flex justify-center">
+                    <Button 
+                      className="bg-fit-purple hover:bg-fit-purple-dark text-white font-bold py-3 px-6 rounded-full shadow-lg transform hover:scale-105 transition-all"
+                      size="lg"
+                    >
+                      <PlusCircle className="mr-2 h-5 w-5" />
+                      Quick Add Food
+                    </Button>
                   </div>
                 </div>
               </CardContent>
