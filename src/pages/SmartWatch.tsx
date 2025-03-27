@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Activity, Bluetooth, Clock, Heart, Smartphone, Moon, Link, WifiOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -87,9 +88,9 @@ const SmartWatch = () => {
       <Header userName="Alex" />
       
       <main className="pb-20">
-        <div className="fit-container">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold text-fit-primary">Smartwatch Integration</h1>
+        <div className="fit-container px-4 sm:px-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-2">
+            <h1 className="text-xl sm:text-2xl font-bold text-fit-primary">Smartwatch Integration</h1>
             <div className="flex items-center gap-2">
               <span className={`inline-block w-3 h-3 rounded-full ${
                 connectionStatus === "connected" ? "bg-fit-accent animate-pulse-soft" : 
@@ -106,44 +107,44 @@ const SmartWatch = () => {
 
           {connectionStatus === "disconnected" && (
             <Card className="purple-card mb-6 animate-fade-in">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Bluetooth className="text-fit-purple-dark" />
+              <CardHeader className="pb-2 sm:pb-4">
+                <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                  <Bluetooth className="text-fit-purple-dark h-5 w-5 sm:h-6 sm:w-6" />
                   Connect Your Smartwatch
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-sm sm:text-base">
                   Sync your health data in real-time for better insights
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                  <div className="flex flex-col items-center justify-center p-4 bg-white/80 rounded-lg">
-                    <Heart className="w-8 h-8 text-fit-purple mb-2" />
-                    <span className="text-sm font-medium">Heart Rate</span>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-6">
+                  <div className="flex flex-col items-center justify-center p-3 sm:p-4 bg-white/80 rounded-lg">
+                    <Heart className="w-6 h-6 sm:w-8 sm:h-8 text-fit-purple mb-1 sm:mb-2" />
+                    <span className="text-xs sm:text-sm font-medium text-center">Heart Rate</span>
                   </div>
-                  <div className="flex flex-col items-center justify-center p-4 bg-white/80 rounded-lg">
-                    <Activity className="w-8 h-8 text-fit-purple mb-2" />
-                    <span className="text-sm font-medium">Activity</span>
+                  <div className="flex flex-col items-center justify-center p-3 sm:p-4 bg-white/80 rounded-lg">
+                    <Activity className="w-6 h-6 sm:w-8 sm:h-8 text-fit-purple mb-1 sm:mb-2" />
+                    <span className="text-xs sm:text-sm font-medium text-center">Activity</span>
                   </div>
-                  <div className="flex flex-col items-center justify-center p-4 bg-white/80 rounded-lg">
-                    <Moon className="w-8 h-8 text-fit-purple mb-2" />
-                    <span className="text-sm font-medium">Sleep</span>
+                  <div className="flex flex-col items-center justify-center p-3 sm:p-4 bg-white/80 rounded-lg">
+                    <Moon className="w-6 h-6 sm:w-8 sm:h-8 text-fit-purple mb-1 sm:mb-2" />
+                    <span className="text-xs sm:text-sm font-medium text-center">Sleep</span>
                   </div>
-                  <div className="flex flex-col items-center justify-center p-4 bg-white/80 rounded-lg">
-                    <Clock className="w-8 h-8 text-fit-purple mb-2" />
-                    <span className="text-sm font-medium">Steps</span>
+                  <div className="flex flex-col items-center justify-center p-3 sm:p-4 bg-white/80 rounded-lg">
+                    <Clock className="w-6 h-6 sm:w-8 sm:h-8 text-fit-purple mb-1 sm:mb-2" />
+                    <span className="text-xs sm:text-sm font-medium text-center">Steps</span>
                   </div>
                 </div>
 
-                <Alert className="bg-white/70 mb-4">
+                <Alert className="bg-white/70 mb-4 text-sm sm:text-base">
                   <Bluetooth className="h-4 w-4" />
                   <AlertTitle>Ready to connect</AlertTitle>
-                  <AlertDescription>
+                  <AlertDescription className="text-xs sm:text-sm">
                     Make sure your smartwatch is nearby and Bluetooth is enabled on your device.
                   </AlertDescription>
                 </Alert>
                 <Button className="w-full" onClick={handleConnectClick}>
-                  <Bluetooth className="mr-2" />
+                  <Bluetooth className="mr-2 h-4 w-4" />
                   Start Scanning
                 </Button>
               </CardContent>
@@ -152,36 +153,36 @@ const SmartWatch = () => {
 
           {connectionStatus === "connecting" && (
             <Card className="purple-card mb-6 animate-fade-in">
-              <CardHeader>
-                <CardTitle>Searching for Devices</CardTitle>
-                <CardDescription>
+              <CardHeader className="pb-2 sm:pb-4">
+                <CardTitle className="text-lg sm:text-xl">Searching for Devices</CardTitle>
+                <CardDescription className="text-sm sm:text-base">
                   Please make sure your smartwatch is powered on and in pairing mode
                 </CardDescription>
               </CardHeader>
-              <CardContent className="flex flex-col items-center justify-center py-6">
-                <div className="w-12 h-12 rounded-full border-4 border-fit-purple-light border-t-transparent animate-spin mb-4"></div>
-                <p className="text-fit-purple-text">Looking for nearby devices...</p>
+              <CardContent className="flex flex-col items-center justify-center py-4 sm:py-6">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-4 border-fit-purple-light border-t-transparent animate-spin mb-3 sm:mb-4"></div>
+                <p className="text-sm sm:text-base text-fit-purple-text">Looking for nearby devices...</p>
               </CardContent>
             </Card>
           )}
 
           {connectionStatus === "connected" && (
             <Card className="purple-card mb-6 animate-fade-in">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Link className="text-fit-accent" />
+              <CardHeader className="pb-2 sm:pb-4">
+                <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                  <Link className="text-fit-accent h-5 w-5 sm:h-6 sm:w-6" />
                   Device Connected
                 </CardTitle>
-                <CardDescription>
+                <CardDescription className="text-sm sm:text-base">
                   {selectedDevice ? supportedDevices.find(d => d.id === selectedDevice)?.name : "Your device"} is now connected and syncing data
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="space-y-4">
+                <div className="space-y-3 sm:space-y-4">
                   <div className="flex justify-between items-center">
                     <div className="flex items-center gap-2">
-                      <Heart className="text-fit-purple" />
-                      <span>Heart Rate Monitoring</span>
+                      <Heart className="text-fit-purple h-4 w-4 sm:h-5 sm:w-5" />
+                      <span className="text-sm sm:text-base">Heart Rate Monitoring</span>
                     </div>
                     <Switch 
                       checked={syncPreferences.heartRate}
@@ -190,8 +191,8 @@ const SmartWatch = () => {
                   </div>
                   <div className="flex justify-between items-center">
                     <div className="flex items-center gap-2">
-                      <Clock className="text-fit-purple" />
-                      <span>Step Counting</span>
+                      <Clock className="text-fit-purple h-4 w-4 sm:h-5 sm:w-5" />
+                      <span className="text-sm sm:text-base">Step Counting</span>
                     </div>
                     <Switch 
                       checked={syncPreferences.steps}
@@ -200,8 +201,8 @@ const SmartWatch = () => {
                   </div>
                   <div className="flex justify-between items-center">
                     <div className="flex items-center gap-2">
-                      <Moon className="text-fit-purple" />
-                      <span>Sleep Tracking</span>
+                      <Moon className="text-fit-purple h-4 w-4 sm:h-5 sm:w-5" />
+                      <span className="text-sm sm:text-base">Sleep Tracking</span>
                     </div>
                     <Switch 
                       checked={syncPreferences.sleep}
@@ -210,8 +211,8 @@ const SmartWatch = () => {
                   </div>
                   <div className="flex justify-between items-center">
                     <div className="flex items-center gap-2">
-                      <Activity className="text-fit-purple" />
-                      <span>Activity Monitoring</span>
+                      <Activity className="text-fit-purple h-4 w-4 sm:h-5 sm:w-5" />
+                      <span className="text-sm sm:text-base">Activity Monitoring</span>
                     </div>
                     <Switch 
                       checked={syncPreferences.activity}
@@ -229,13 +230,13 @@ const SmartWatch = () => {
             </Card>
           )}
 
-          <h2 className="text-xl font-semibold mb-4 text-fit-primary">Supported Devices</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-fit-primary">Supported Devices</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-6">
             {supportedDevices.map((device) => (
               <Card key={device.id} className="fit-card hover:border-fit-purple-light">
                 <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">{device.name}</CardTitle>
-                  <CardDescription>
+                  <CardTitle className="text-base sm:text-lg">{device.name}</CardTitle>
+                  <CardDescription className="text-xs sm:text-sm">
                     Compatibility: <span className={`font-medium ${
                       device.compatibility === "High" ? "text-fit-accent" : "text-fit-purple-light"
                     }`}>{device.compatibility}</span>
@@ -254,10 +255,10 @@ const SmartWatch = () => {
                   <Button 
                     variant="secondary" 
                     size="sm" 
-                    className="w-full"
+                    className="w-full text-xs sm:text-sm"
                     onClick={() => handleDeviceSelect(device.id)}
                   >
-                    <Smartphone className="mr-2 h-4 w-4" />
+                    <Smartphone className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
                     Select Device
                   </Button>
                 </CardFooter>
@@ -266,22 +267,22 @@ const SmartWatch = () => {
           </div>
 
           <Card className="fit-card">
-            <CardHeader>
-              <CardTitle>Troubleshooting</CardTitle>
+            <CardHeader className="pb-2 sm:pb-4">
+              <CardTitle className="text-lg sm:text-xl">Troubleshooting</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 <div>
-                  <h3 className="font-medium mb-1">Can't find your device?</h3>
-                  <p className="text-sm text-fit-muted">Make sure Bluetooth is enabled and your device is in pairing mode. Try restarting both your phone and smartwatch.</p>
+                  <h3 className="font-medium mb-1 text-sm sm:text-base">Can't find your device?</h3>
+                  <p className="text-xs sm:text-sm text-fit-muted">Make sure Bluetooth is enabled and your device is in pairing mode. Try restarting both your phone and smartwatch.</p>
                 </div>
                 <div>
-                  <h3 className="font-medium mb-1">Data not syncing?</h3>
-                  <p className="text-sm text-fit-muted">Ensure your smartwatch has the latest firmware installed and check app permissions on your phone.</p>
+                  <h3 className="font-medium mb-1 text-sm sm:text-base">Data not syncing?</h3>
+                  <p className="text-xs sm:text-sm text-fit-muted">Ensure your smartwatch has the latest firmware installed and check app permissions on your phone.</p>
                 </div>
                 <div>
-                  <h3 className="font-medium mb-1">Connection keeps dropping?</h3>
-                  <p className="text-sm text-fit-muted">Try keeping your devices within 30 feet of each other and avoid interference from other electronic devices.</p>
+                  <h3 className="font-medium mb-1 text-sm sm:text-base">Connection keeps dropping?</h3>
+                  <p className="text-xs sm:text-sm text-fit-muted">Try keeping your devices within 30 feet of each other and avoid interference from other electronic devices.</p>
                 </div>
               </div>
             </CardContent>
@@ -290,19 +291,19 @@ const SmartWatch = () => {
       </main>
       
       <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-        <DialogContent>
+        <DialogContent className="max-w-sm sm:max-w-md mx-auto">
           <DialogHeader>
-            <DialogTitle>Connect {selectedDevice && supportedDevices.find(d => d.id === selectedDevice)?.name}</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-lg sm:text-xl">Connect {selectedDevice && supportedDevices.find(d => d.id === selectedDevice)?.name}</DialogTitle>
+            <DialogDescription className="text-sm sm:text-base">
               Follow these steps to pair your device.
             </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 py-4">
+          <div className="space-y-4 py-2 sm:py-4">
             <div className="space-y-2">
-              <Label htmlFor="pairing-code">Pairing Code (if required)</Label>
-              <Input id="pairing-code" placeholder="Enter the code displayed on your device" />
+              <Label htmlFor="pairing-code" className="text-sm sm:text-base">Pairing Code (if required)</Label>
+              <Input id="pairing-code" placeholder="Enter the code displayed on your device" className="text-sm sm:text-base" />
             </div>
-            <ol className="list-decimal pl-4 space-y-2 text-sm">
+            <ol className="list-decimal pl-4 space-y-1 sm:space-y-2 text-xs sm:text-sm">
               <li>Enable Bluetooth on your smartphone</li>
               <li>Open the companion app for your smartwatch</li>
               <li>Put your smartwatch in pairing mode</li>
@@ -310,12 +311,12 @@ const SmartWatch = () => {
               <li>Confirm the pairing code if prompted</li>
             </ol>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setOpenDialog(false)}>Cancel</Button>
+          <DialogFooter className="gap-2 sm:gap-3 flex-col sm:flex-row sm:justify-end">
+            <Button variant="outline" onClick={() => setOpenDialog(false)} className="w-full sm:w-auto text-sm">Cancel</Button>
             <Button onClick={() => {
               setOpenDialog(false);
               handleConnectClick();
-            }}>
+            }} className="w-full sm:w-auto text-sm">
               <Bluetooth className="mr-2 h-4 w-4" />
               Connect
             </Button>
