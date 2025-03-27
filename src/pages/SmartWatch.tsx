@@ -88,7 +88,7 @@ const SmartWatch = () => {
       <Header userName="Alex" />
       
       <main className="pb-20">
-        <div className="fit-container px-4 sm:px-6">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-2">
             <h1 className="text-xl sm:text-2xl font-bold text-fit-primary">Smartwatch Integration</h1>
             <div className="flex items-center gap-2">
@@ -105,188 +105,194 @@ const SmartWatch = () => {
             </div>
           </div>
 
-          {connectionStatus === "disconnected" && (
-            <Card className="purple-card mb-6 animate-fade-in">
-              <CardHeader className="pb-2 sm:pb-4">
-                <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-                  <Bluetooth className="text-fit-purple-dark h-5 w-5 sm:h-6 sm:w-6" />
-                  Connect Your Smartwatch
-                </CardTitle>
-                <CardDescription className="text-sm sm:text-base">
-                  Sync your health data in real-time for better insights
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-6">
-                  <div className="flex flex-col items-center justify-center p-3 sm:p-4 bg-white/80 rounded-lg">
-                    <Heart className="w-6 h-6 sm:w-8 sm:h-8 text-fit-purple mb-1 sm:mb-2" />
-                    <span className="text-xs sm:text-sm font-medium text-center">Heart Rate</span>
-                  </div>
-                  <div className="flex flex-col items-center justify-center p-3 sm:p-4 bg-white/80 rounded-lg">
-                    <Activity className="w-6 h-6 sm:w-8 sm:h-8 text-fit-purple mb-1 sm:mb-2" />
-                    <span className="text-xs sm:text-sm font-medium text-center">Activity</span>
-                  </div>
-                  <div className="flex flex-col items-center justify-center p-3 sm:p-4 bg-white/80 rounded-lg">
-                    <Moon className="w-6 h-6 sm:w-8 sm:h-8 text-fit-purple mb-1 sm:mb-2" />
-                    <span className="text-xs sm:text-sm font-medium text-center">Sleep</span>
-                  </div>
-                  <div className="flex flex-col items-center justify-center p-3 sm:p-4 bg-white/80 rounded-lg">
-                    <Clock className="w-6 h-6 sm:w-8 sm:h-8 text-fit-purple mb-1 sm:mb-2" />
-                    <span className="text-xs sm:text-sm font-medium text-center">Steps</span>
-                  </div>
-                </div>
-
-                <Alert className="bg-white/70 mb-4 text-sm sm:text-base">
-                  <Bluetooth className="h-4 w-4" />
-                  <AlertTitle>Ready to connect</AlertTitle>
-                  <AlertDescription className="text-xs sm:text-sm">
-                    Make sure your smartwatch is nearby and Bluetooth is enabled on your device.
-                  </AlertDescription>
-                </Alert>
-                <Button className="w-full" onClick={handleConnectClick}>
-                  <Bluetooth className="mr-2 h-4 w-4" />
-                  Start Scanning
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-
-          {connectionStatus === "connecting" && (
-            <Card className="purple-card mb-6 animate-fade-in">
-              <CardHeader className="pb-2 sm:pb-4">
-                <CardTitle className="text-lg sm:text-xl">Searching for Devices</CardTitle>
-                <CardDescription className="text-sm sm:text-base">
-                  Please make sure your smartwatch is powered on and in pairing mode
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="flex flex-col items-center justify-center py-4 sm:py-6">
-                <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-4 border-fit-purple-light border-t-transparent animate-spin mb-3 sm:mb-4"></div>
-                <p className="text-sm sm:text-base text-fit-purple-text">Looking for nearby devices...</p>
-              </CardContent>
-            </Card>
-          )}
-
-          {connectionStatus === "connected" && (
-            <Card className="purple-card mb-6 animate-fade-in">
-              <CardHeader className="pb-2 sm:pb-4">
-                <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-                  <Link className="text-fit-accent h-5 w-5 sm:h-6 sm:w-6" />
-                  Device Connected
-                </CardTitle>
-                <CardDescription className="text-sm sm:text-base">
-                  {selectedDevice ? supportedDevices.find(d => d.id === selectedDevice)?.name : "Your device"} is now connected and syncing data
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3 sm:space-y-4">
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-2">
-                      <Heart className="text-fit-purple h-4 w-4 sm:h-5 sm:w-5" />
-                      <span className="text-sm sm:text-base">Heart Rate Monitoring</span>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-2">
+              {connectionStatus === "disconnected" && (
+                <Card className="purple-card mb-6 animate-fade-in">
+                  <CardHeader className="pb-2 sm:pb-4">
+                    <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                      <Bluetooth className="text-fit-purple-dark h-5 w-5 sm:h-6 sm:w-6" />
+                      Connect Your Smartwatch
+                    </CardTitle>
+                    <CardDescription className="text-sm sm:text-base">
+                      Sync your health data in real-time for better insights
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-6">
+                      <div className="flex flex-col items-center justify-center p-3 sm:p-4 bg-white/80 rounded-lg">
+                        <Heart className="w-6 h-6 sm:w-8 sm:h-8 text-fit-purple mb-1 sm:mb-2" />
+                        <span className="text-xs sm:text-sm font-medium text-center">Heart Rate</span>
+                      </div>
+                      <div className="flex flex-col items-center justify-center p-3 sm:p-4 bg-white/80 rounded-lg">
+                        <Activity className="w-6 h-6 sm:w-8 sm:h-8 text-fit-purple mb-1 sm:mb-2" />
+                        <span className="text-xs sm:text-sm font-medium text-center">Activity</span>
+                      </div>
+                      <div className="flex flex-col items-center justify-center p-3 sm:p-4 bg-white/80 rounded-lg">
+                        <Moon className="w-6 h-6 sm:w-8 sm:h-8 text-fit-purple mb-1 sm:mb-2" />
+                        <span className="text-xs sm:text-sm font-medium text-center">Sleep</span>
+                      </div>
+                      <div className="flex flex-col items-center justify-center p-3 sm:p-4 bg-white/80 rounded-lg">
+                        <Clock className="w-6 h-6 sm:w-8 sm:h-8 text-fit-purple mb-1 sm:mb-2" />
+                        <span className="text-xs sm:text-sm font-medium text-center">Steps</span>
+                      </div>
                     </div>
-                    <Switch 
-                      checked={syncPreferences.heartRate}
-                      onCheckedChange={() => handleSyncPreferenceChange("heartRate")}
-                    />
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-2">
-                      <Clock className="text-fit-purple h-4 w-4 sm:h-5 sm:w-5" />
-                      <span className="text-sm sm:text-base">Step Counting</span>
-                    </div>
-                    <Switch 
-                      checked={syncPreferences.steps}
-                      onCheckedChange={() => handleSyncPreferenceChange("steps")}
-                    />
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-2">
-                      <Moon className="text-fit-purple h-4 w-4 sm:h-5 sm:w-5" />
-                      <span className="text-sm sm:text-base">Sleep Tracking</span>
-                    </div>
-                    <Switch 
-                      checked={syncPreferences.sleep}
-                      onCheckedChange={() => handleSyncPreferenceChange("sleep")}
-                    />
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-2">
-                      <Activity className="text-fit-purple h-4 w-4 sm:h-5 sm:w-5" />
-                      <span className="text-sm sm:text-base">Activity Monitoring</span>
-                    </div>
-                    <Switch 
-                      checked={syncPreferences.activity}
-                      onCheckedChange={() => handleSyncPreferenceChange("activity")}
-                    />
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter>
-                <Button variant="outline" className="w-full" onClick={handleDisconnect}>
-                  <WifiOff className="mr-2 h-4 w-4" />
-                  Disconnect Device
-                </Button>
-              </CardFooter>
-            </Card>
-          )}
 
-          <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-fit-primary">Supported Devices</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 mb-6">
-            {supportedDevices.map((device) => (
-              <Card key={device.id} className="fit-card hover:border-fit-purple-light">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base sm:text-lg">{device.name}</CardTitle>
-                  <CardDescription className="text-xs sm:text-sm">
-                    Compatibility: <span className={`font-medium ${
-                      device.compatibility === "High" ? "text-fit-accent" : "text-fit-purple-light"
-                    }`}>{device.compatibility}</span>
-                  </CardDescription>
+                    <Alert className="bg-white/70 mb-4 text-sm sm:text-base">
+                      <Bluetooth className="h-4 w-4" />
+                      <AlertTitle>Ready to connect</AlertTitle>
+                      <AlertDescription className="text-xs sm:text-sm">
+                        Make sure your smartwatch is nearby and Bluetooth is enabled on your device.
+                      </AlertDescription>
+                    </Alert>
+                    <Button className="w-full" onClick={handleConnectClick}>
+                      <Bluetooth className="mr-2 h-4 w-4" />
+                      Start Scanning
+                    </Button>
+                  </CardContent>
+                </Card>
+              )}
+
+              {connectionStatus === "connecting" && (
+                <Card className="purple-card mb-6 animate-fade-in">
+                  <CardHeader className="pb-2 sm:pb-4">
+                    <CardTitle className="text-lg sm:text-xl">Searching for Devices</CardTitle>
+                    <CardDescription className="text-sm sm:text-base">
+                      Please make sure your smartwatch is powered on and in pairing mode
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="flex flex-col items-center justify-center py-4 sm:py-6">
+                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-4 border-fit-purple-light border-t-transparent animate-spin mb-3 sm:mb-4"></div>
+                    <p className="text-sm sm:text-base text-fit-purple-text">Looking for nearby devices...</p>
+                  </CardContent>
+                </Card>
+              )}
+
+              {connectionStatus === "connected" && (
+                <Card className="purple-card mb-6 animate-fade-in">
+                  <CardHeader className="pb-2 sm:pb-4">
+                    <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+                      <Link className="text-fit-accent h-5 w-5 sm:h-6 sm:w-6" />
+                      Device Connected
+                    </CardTitle>
+                    <CardDescription className="text-sm sm:text-base">
+                      {selectedDevice ? supportedDevices.find(d => d.id === selectedDevice)?.name : "Your device"} is now connected and syncing data
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3 sm:space-y-4">
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-2">
+                          <Heart className="text-fit-purple h-4 w-4 sm:h-5 sm:w-5" />
+                          <span className="text-sm sm:text-base">Heart Rate Monitoring</span>
+                        </div>
+                        <Switch 
+                          checked={syncPreferences.heartRate}
+                          onCheckedChange={() => handleSyncPreferenceChange("heartRate")}
+                        />
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-2">
+                          <Clock className="text-fit-purple h-4 w-4 sm:h-5 sm:w-5" />
+                          <span className="text-sm sm:text-base">Step Counting</span>
+                        </div>
+                        <Switch 
+                          checked={syncPreferences.steps}
+                          onCheckedChange={() => handleSyncPreferenceChange("steps")}
+                        />
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-2">
+                          <Moon className="text-fit-purple h-4 w-4 sm:h-5 sm:w-5" />
+                          <span className="text-sm sm:text-base">Sleep Tracking</span>
+                        </div>
+                        <Switch 
+                          checked={syncPreferences.sleep}
+                          onCheckedChange={() => handleSyncPreferenceChange("sleep")}
+                        />
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <div className="flex items-center gap-2">
+                          <Activity className="text-fit-purple h-4 w-4 sm:h-5 sm:w-5" />
+                          <span className="text-sm sm:text-base">Activity Monitoring</span>
+                        </div>
+                        <Switch 
+                          checked={syncPreferences.activity}
+                          onCheckedChange={() => handleSyncPreferenceChange("activity")}
+                        />
+                      </div>
+                    </div>
+                  </CardContent>
+                  <CardFooter>
+                    <Button variant="outline" className="w-full" onClick={handleDisconnect}>
+                      <WifiOff className="mr-2 h-4 w-4" />
+                      Disconnect Device
+                    </Button>
+                  </CardFooter>
+                </Card>
+              )}
+              
+              <Card className="fit-card">
+                <CardHeader className="pb-2 sm:pb-4">
+                  <CardTitle className="text-lg sm:text-xl">Troubleshooting</CardTitle>
                 </CardHeader>
-                <CardContent className="pb-2">
-                  <div className="flex flex-wrap gap-1">
-                    {device.metrics.map((metric) => (
-                      <span key={metric} className="bg-fit-purple-softer text-fit-purple-text px-2 py-1 rounded-full text-xs">
-                        {metric}
-                      </span>
-                    ))}
+                <CardContent>
+                  <div className="space-y-3 sm:space-y-4">
+                    <div>
+                      <h3 className="font-medium mb-1 text-sm sm:text-base">Can't find your device?</h3>
+                      <p className="text-xs sm:text-sm text-fit-muted">Make sure Bluetooth is enabled and your device is in pairing mode. Try restarting both your phone and smartwatch.</p>
+                    </div>
+                    <div>
+                      <h3 className="font-medium mb-1 text-sm sm:text-base">Data not syncing?</h3>
+                      <p className="text-xs sm:text-sm text-fit-muted">Ensure your smartwatch has the latest firmware installed and check app permissions on your phone.</p>
+                    </div>
+                    <div>
+                      <h3 className="font-medium mb-1 text-sm sm:text-base">Connection keeps dropping?</h3>
+                      <p className="text-xs sm:text-sm text-fit-muted">Try keeping your devices within 30 feet of each other and avoid interference from other electronic devices.</p>
+                    </div>
                   </div>
                 </CardContent>
-                <CardFooter>
-                  <Button 
-                    variant="secondary" 
-                    size="sm" 
-                    className="w-full text-xs sm:text-sm"
-                    onClick={() => handleDeviceSelect(device.id)}
-                  >
-                    <Smartphone className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                    Select Device
-                  </Button>
-                </CardFooter>
               </Card>
-            ))}
-          </div>
+            </div>
 
-          <Card className="fit-card">
-            <CardHeader className="pb-2 sm:pb-4">
-              <CardTitle className="text-lg sm:text-xl">Troubleshooting</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3 sm:space-y-4">
-                <div>
-                  <h3 className="font-medium mb-1 text-sm sm:text-base">Can't find your device?</h3>
-                  <p className="text-xs sm:text-sm text-fit-muted">Make sure Bluetooth is enabled and your device is in pairing mode. Try restarting both your phone and smartwatch.</p>
-                </div>
-                <div>
-                  <h3 className="font-medium mb-1 text-sm sm:text-base">Data not syncing?</h3>
-                  <p className="text-xs sm:text-sm text-fit-muted">Ensure your smartwatch has the latest firmware installed and check app permissions on your phone.</p>
-                </div>
-                <div>
-                  <h3 className="font-medium mb-1 text-sm sm:text-base">Connection keeps dropping?</h3>
-                  <p className="text-xs sm:text-sm text-fit-muted">Try keeping your devices within 30 feet of each other and avoid interference from other electronic devices.</p>
-                </div>
+            <div className="lg:col-span-1">
+              <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-fit-primary">Supported Devices</h2>
+              <div className="grid grid-cols-1 gap-3 sm:gap-4">
+                {supportedDevices.map((device) => (
+                  <Card key={device.id} className="fit-card hover:border-fit-purple-light">
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-base sm:text-lg">{device.name}</CardTitle>
+                      <CardDescription className="text-xs sm:text-sm">
+                        Compatibility: <span className={`font-medium ${
+                          device.compatibility === "High" ? "text-fit-accent" : "text-fit-purple-light"
+                        }`}>{device.compatibility}</span>
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="pb-2">
+                      <div className="flex flex-wrap gap-1">
+                        {device.metrics.map((metric) => (
+                          <span key={metric} className="bg-fit-purple-softer text-fit-purple-text px-2 py-1 rounded-full text-xs">
+                            {metric}
+                          </span>
+                        ))}
+                      </div>
+                    </CardContent>
+                    <CardFooter>
+                      <Button 
+                        variant="secondary" 
+                        size="sm" 
+                        className="w-full text-xs sm:text-sm"
+                        onClick={() => handleDeviceSelect(device.id)}
+                      >
+                        <Smartphone className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+                        Select Device
+                      </Button>
+                    </CardFooter>
+                  </Card>
+                ))}
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       </main>
       
