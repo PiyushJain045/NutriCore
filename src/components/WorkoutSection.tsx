@@ -2,6 +2,7 @@
 import { Dumbbell, Camera } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const workouts = [
   {
@@ -29,6 +30,7 @@ const workouts = [
 
 const WorkoutSection = () => {
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   return (
     <section className="px-6 py-4 animate-slide-up" style={{ animationDelay: '400ms' }}>
@@ -44,7 +46,7 @@ const WorkoutSection = () => {
         </Button>
       </div>
       
-      <div className="space-y-3 mb-4">
+      <div className={`${isMobile ? 'space-y-3' : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3'} mb-4`}>
         {workouts.map((workout) => (
           <div key={workout.id} className="fit-card p-4 flex justify-between items-center">
             <div className="flex gap-4 items-center">

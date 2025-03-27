@@ -3,6 +3,7 @@ import React from "react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Bell, ArrowUp, Heart } from "lucide-react";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const newsItems = [
   {
@@ -44,6 +45,8 @@ const newsItems = [
 ];
 
 const NewsSection = () => {
+  const isMobile = useIsMobile();
+
   return (
     <section className="mb-12">
       <div className="flex items-center justify-between mb-4">
@@ -53,7 +56,7 @@ const NewsSection = () => {
         </div>
       </div>
       
-      <div className="space-y-4">
+      <div className={`${isMobile ? 'space-y-4' : 'grid grid-cols-2 gap-4'}`}>
         {newsItems.map((item) => (
           <Card key={item.id} className="overflow-hidden hover:shadow-md transition-shadow">
             <CardHeader className="pb-2">
