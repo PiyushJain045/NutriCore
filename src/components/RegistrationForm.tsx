@@ -1,9 +1,9 @@
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -98,12 +98,35 @@ const RegistrationForm = () => {
     },
   });
 
-  function onSubmit(data: FormData) {
+  async function onSubmit(data: FormData) {
     setIsSubmitting(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      // Store data in localStorage for demo purposes
+    try {
+      // Map the form data to match database column names
+      const { error } = await supabase.from('user_profiles').insert({
+        name: data.name,
+        age: data.age,
+        gender: data.gender,
+        region: data.region,
+        height: data.height,
+        weight: data.weight,
+        activity_level: data.activityLevel,
+        medical_conditions: data.medicalConditions || null,
+        dietary_preferences: data.dietaryPreferences || null
+      });
+      
+      if (error) {
+        console.error('Error saving profile:', error);
+        toast({
+          title: "Registration failed",
+          description: error.message,
+          variant: "destructive"
+        });
+        setIsSubmitting(false);
+        return;
+      }
+      
+      // Store data in localStorage for access across the app
       localStorage.setItem("userBiodata", JSON.stringify(data));
       
       toast({
@@ -113,7 +136,15 @@ const RegistrationForm = () => {
       
       setIsSubmitting(false);
       navigate("/"); // Redirect to home page
-    }, 1500);
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      toast({
+        title: "Registration failed",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive"
+      });
+      setIsSubmitting(false);
+    }
   }
 
   return (
