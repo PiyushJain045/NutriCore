@@ -171,34 +171,40 @@ const RegistrationForm = () => {
                       <RadioGroup
                         onValueChange={field.onChange}
                         defaultValue={field.value}
-                        className="flex flex-col space-y-1"
+                        className="flex flex-col space-y-2"
                       >
-                        <div className="grid grid-cols-2 gap-2">
-                          <div className="flex items-center space-x-2">
+                        <FormItem className="flex items-center space-x-3 space-y-0">
+                          <FormControl>
                             <RadioGroupItem value="male" id="male" />
-                            <label htmlFor="male" className="text-sm font-medium">
-                              Male
-                            </label>
-                          </div>
-                          <div className="flex items-center space-x-2">
+                          </FormControl>
+                          <FormLabel htmlFor="male" className="font-normal cursor-pointer">
+                            Male
+                          </FormLabel>
+                        </FormItem>
+                        <FormItem className="flex items-center space-x-3 space-y-0">
+                          <FormControl>
                             <RadioGroupItem value="female" id="female" />
-                            <label htmlFor="female" className="text-sm font-medium">
-                              Female
-                            </label>
-                          </div>
-                          <div className="flex items-center space-x-2">
+                          </FormControl>
+                          <FormLabel htmlFor="female" className="font-normal cursor-pointer">
+                            Female
+                          </FormLabel>
+                        </FormItem>
+                        <FormItem className="flex items-center space-x-3 space-y-0">
+                          <FormControl>
                             <RadioGroupItem value="other" id="other" />
-                            <label htmlFor="other" className="text-sm font-medium">
-                              Other
-                            </label>
-                          </div>
-                          <div className="flex items-center space-x-2">
+                          </FormControl>
+                          <FormLabel htmlFor="other" className="font-normal cursor-pointer">
+                            Other
+                          </FormLabel>
+                        </FormItem>
+                        <FormItem className="flex items-center space-x-3 space-y-0">
+                          <FormControl>
                             <RadioGroupItem value="prefer-not-to-say" id="prefer-not-to-say" />
-                            <label htmlFor="prefer-not-to-say" className="text-sm font-medium">
-                              Prefer not to say
-                            </label>
-                          </div>
-                        </div>
+                          </FormControl>
+                          <FormLabel htmlFor="prefer-not-to-say" className="font-normal cursor-pointer">
+                            Prefer not to say
+                          </FormLabel>
+                        </FormItem>
                       </RadioGroup>
                     </FormControl>
                     <FormMessage />
