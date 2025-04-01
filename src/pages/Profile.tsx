@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from 'react';
 import { ArrowLeft, User, Settings, Moon, Bell, BarChart2, LogOut } from 'lucide-react';
 import Navigation from '@/components/Navigation';
@@ -10,6 +9,7 @@ import { CircleProgress } from '@/components/CircleProgress';
 import { supabase } from '@/integrations/supabase/client';
 import { Tables } from '@/integrations/supabase/types';
 import { toast } from '@/hooks/use-toast';
+import { useAuth } from "@/contexts/AuthContext";
 
 const chartData = [
   { name: 'Sun', value: 35 },
@@ -146,14 +146,20 @@ const Profile = () => {
   const navigate = useNavigate();
   const [userProfile, setUserProfile] = useState<Tables<'user_profiles'> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { user } = useAuth();
 
   useEffect(() => {
     async function fetchUserProfile() {
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
+      
       try {
         const { data, error } = await supabase
           .from('user_profiles')
           .select('*')
-          .limit(1)
+          .eq('user_id', user.id)
           .maybeSingle();
           
         if (error) {
@@ -175,18 +181,14 @@ const Profile = () => {
     }
 
     fetchUserProfile();
-  }, []);
-
-  // Update goals if user profile exists
+  }, [user]);
+  
   const updatedGoals = [...goals];
   if (userProfile) {
-    // Replace the weight goal with actual data if available
     const weightGoal = updatedGoals.find(g => g.title === "Weight");
     if (weightGoal) {
       weightGoal.current = userProfile.weight;
-      // Calculate a target weight based on current weight (5% less)
       weightGoal.target = Math.round(userProfile.weight * 0.95);
-      // Calculate progress
       weightGoal.progress = Math.min(100, Math.round((weightGoal.target / weightGoal.current) * 100));
     }
   }

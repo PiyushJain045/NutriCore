@@ -21,6 +21,7 @@ export type Database = {
           name: string
           protein: number
           serving_size: string
+          user_id: string | null
         }
         Insert: {
           calories: number
@@ -33,6 +34,7 @@ export type Database = {
           name: string
           protein: number
           serving_size: string
+          user_id?: string | null
         }
         Update: {
           calories?: number
@@ -45,6 +47,7 @@ export type Database = {
           name?: string
           protein?: number
           serving_size?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -61,6 +64,7 @@ export type Database = {
           name: string
           region: string
           updated_at: string
+          user_id: string
           weight: number
         }
         Insert: {
@@ -75,6 +79,7 @@ export type Database = {
           name: string
           region: string
           updated_at?: string
+          user_id: string
           weight: number
         }
         Update: {
@@ -89,6 +94,7 @@ export type Database = {
           name?: string
           region?: string
           updated_at?: string
+          user_id?: string
           weight?: number
         }
         Relationships: []

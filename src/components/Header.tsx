@@ -1,14 +1,13 @@
 
-import { Bell } from "lucide-react";
+import { Bell, LogOut } from "lucide-react";
 import { Link } from "react-router-dom";
-import RegisterButton from "./RegisterButton";
+import { useAuth } from "@/contexts/AuthContext";
+import { Button } from "@/components/ui/button";
 
-interface HeaderProps {
-  userName: string;
-}
-
-const Header = ({ userName }: HeaderProps) => {
-  const isLoggedIn = userName !== "Guest";
+const Header = () => {
+  const { user, signOut } = useAuth();
+  const userName = user ? user.email?.split('@')[0] || "User" : "Guest";
+  const isLoggedIn = !!user;
 
   return (
     <header className="bg-white shadow-sm py-4 px-4 sticky top-0 z-30">
@@ -33,12 +32,22 @@ const Header = ({ userName }: HeaderProps) => {
                 className="flex items-center gap-1"
               >
                 <div className="w-8 h-8 rounded-full bg-fit-purple-softer flex items-center justify-center text-fit-purple-text font-medium">
-                  {userName.charAt(0)}
+                  {userName.charAt(0).toUpperCase()}
                 </div>
               </Link>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                onClick={signOut}
+                title="Sign out"
+              >
+                <LogOut className="h-5 w-5 text-gray-600" />
+              </Button>
             </>
           ) : (
-            <RegisterButton />
+            <Button asChild variant="secondary">
+              <Link to="/auth">Login / Register</Link>
+            </Button>
           )}
         </div>
       </div>

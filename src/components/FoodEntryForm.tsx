@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { ArrowLeft, Search, Plus, Trash2, Calculator } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -8,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface FoodItem {
   id: string;
@@ -26,7 +26,6 @@ interface FoodEntryFormProps {
   initialData?: Partial<FoodItem>;
 }
 
-// Dummy food database for search functionality
 const foodDatabase = [
   { id: "1", name: "Apple", calories: 95, protein: 0.5, carbs: 25, fat: 0.3, servingSize: "1 medium", mealType: "Snack" },
   { id: "2", name: "Banana", calories: 105, protein: 1.3, carbs: 27, fat: 0.4, servingSize: "1 medium", mealType: "Snack" },
@@ -39,6 +38,7 @@ const foodDatabase = [
 const MEAL_TYPES = ["Breakfast", "Lunch", "Dinner", "Snack"];
 
 const FoodEntryForm = ({ onBack, initialData }: FoodEntryFormProps) => {
+  const { user } = useAuth();
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState<typeof foodDatabase>([]);
   const [selectedFoods, setSelectedFoods] = useState<FoodItem[]>([]);
@@ -139,6 +139,11 @@ const FoodEntryForm = ({ onBack, initialData }: FoodEntryFormProps) => {
   };
 
   const saveFoodEntry = async () => {
+    if (!user) {
+      toast.error("You must be logged in to save food entries");
+      return;
+    }
+    
     if (selectedFoods.length === 0) {
       toast.error("Please add at least one food item");
       return;
@@ -158,7 +163,8 @@ const FoodEntryForm = ({ onBack, initialData }: FoodEntryFormProps) => {
             protein: food.protein * food.quantity,
             carbs: food.carbs * food.quantity,
             fat: food.fat * food.quantity,
-            meal_type: food.mealType
+            meal_type: food.mealType,
+            user_id: user.id
           });
           
         if (error) {

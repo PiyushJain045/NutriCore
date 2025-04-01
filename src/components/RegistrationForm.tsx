@@ -1,10 +1,10 @@
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -29,7 +29,6 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "@/hooks/use-toast";
 import { Card, CardContent } from "@/components/ui/card";
 
-// Form schema with validation
 const formSchema = z.object({
   name: z.string().min(2, {
     message: "Name must be at least 2 characters.",
@@ -74,7 +73,6 @@ const activityLevelDescriptions = {
   "very-active": "Very active & intense exercise daily"
 };
 
-// Regions list
 const regions = [
   "Africa", 
   "Asia", 
@@ -89,6 +87,7 @@ type FormData = z.infer<typeof formSchema>;
 const RegistrationForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
+  const { user } = useAuth();
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -100,6 +99,16 @@ const RegistrationForm = () => {
   });
 
   async function onSubmit(data: FormData) {
+    if (!user) {
+      toast({
+        title: "Authentication required",
+        description: "Please log in to create a profile",
+        variant: "destructive"
+      });
+      navigate("/auth");
+      return;
+    }
+    
     setIsSubmitting(true);
     
     try {
@@ -113,7 +122,8 @@ const RegistrationForm = () => {
         weight: data.weight,
         activity_level: data.activityLevel,
         medical_conditions: data.medicalConditions || null,
-        dietary_preferences: data.dietaryPreferences || null
+        dietary_preferences: data.dietaryPreferences || null,
+        user_id: user.id
       });
       
       if (error) {
@@ -126,9 +136,6 @@ const RegistrationForm = () => {
         setIsSubmitting(false);
         return;
       }
-      
-      // Store data in localStorage for access across the app
-      localStorage.setItem("userBiodata", JSON.stringify(data));
       
       toast({
         title: "Registration successful!",
@@ -154,7 +161,6 @@ const RegistrationForm = () => {
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Name field */}
               <FormField
                 control={form.control}
                 name="name"
@@ -169,7 +175,6 @@ const RegistrationForm = () => {
                 )}
               />
 
-              {/* Age field */}
               <FormField
                 control={form.control}
                 name="age"
@@ -192,7 +197,6 @@ const RegistrationForm = () => {
                 )}
               />
 
-              {/* Gender field */}
               <FormField
                 control={form.control}
                 name="gender"
@@ -244,7 +248,6 @@ const RegistrationForm = () => {
                 )}
               />
 
-              {/* Region field */}
               <FormField
                 control={form.control}
                 name="region"
@@ -270,7 +273,6 @@ const RegistrationForm = () => {
                 )}
               />
 
-              {/* Height field */}
               <FormField
                 control={form.control}
                 name="height"
@@ -293,7 +295,6 @@ const RegistrationForm = () => {
                 )}
               />
 
-              {/* Weight field */}
               <FormField
                 control={form.control}
                 name="weight"
@@ -316,7 +317,6 @@ const RegistrationForm = () => {
                 )}
               />
 
-              {/* Activity Level field */}
               <FormField
                 control={form.control}
                 name="activityLevel"
@@ -346,7 +346,6 @@ const RegistrationForm = () => {
               />
             </div>
 
-            {/* Medical Conditions field */}
             <FormField
               control={form.control}
               name="medicalConditions"
@@ -368,7 +367,6 @@ const RegistrationForm = () => {
               )}
             />
 
-            {/* Dietary Preferences field */}
             <FormField
               control={form.control}
               name="dietaryPreferences"
