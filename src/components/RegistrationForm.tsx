@@ -1,3 +1,4 @@
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -102,8 +103,7 @@ const RegistrationForm = () => {
     setIsSubmitting(true);
     
     try {
-      // For now, we'll store data without authentication since auth isn't implemented
-      // This means we'll store the profile without a user_id reference
+      // Store the profile in the user_profiles table
       const { error } = await supabase.from('user_profiles').insert({
         name: data.name,
         age: data.age,

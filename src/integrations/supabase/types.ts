@@ -22,7 +22,6 @@ export type Database = {
           name: string
           region: string
           updated_at: string
-          user_id: string | null
           weight: number
         }
         Insert: {
@@ -37,7 +36,6 @@ export type Database = {
           name: string
           region: string
           updated_at?: string
-          user_id?: string | null
           weight: number
         }
         Update: {
@@ -52,7 +50,6 @@ export type Database = {
           name?: string
           region?: string
           updated_at?: string
-          user_id?: string | null
           weight?: number
         }
         Relationships: []
