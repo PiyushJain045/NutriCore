@@ -1,338 +1,348 @@
+import { useEffect, useState } from 'react';
+import { ArrowLeft, User, Settings, Moon, Bell, BarChart2, LogOut, Edit } from 'lucide-react';
+import Navigation from '@/components/Navigation';
+import { useNavigate } from 'react-router-dom';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
+import { CircleProgress } from '@/components/CircleProgress';
+import { supabase } from '@/integrations/supabase/client';
+import { Tables } from '@/integrations/supabase/types';
+import { toast } from '@/hooks/use-toast';
+import { useAuth } from "@/contexts/AuthContext";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle
+} from "@/components/ui/dialog";
+import EditProfileForm from '@/components/EditProfileForm';
 
-import { useState } from "react";
-import { Activity, Bluetooth, Clock, Heart, Smartphone, Moon, Link, WifiOff } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Switch } from "@/components/ui/switch";
-import { useToast } from "@/hooks/use-toast";
-import Header from "@/components/Header";
-import Navigation from "@/components/Navigation";
-
-const supportedDevices = [
-  { id: 1, name: "FitBit Sense 2", compatibility: "High", metrics: ["Steps", "Heart Rate", "Sleep", "Activity"] },
-  { id: 2, name: "Apple Watch Series 8", compatibility: "High", metrics: ["Steps", "Heart Rate", "Sleep", "Activity", "ECG"] },
-  { id: 3, name: "Samsung Galaxy Watch 5", compatibility: "High", metrics: ["Steps", "Heart Rate", "Sleep", "Activity", "Blood Oxygen"] },
-  { id: 4, name: "Garmin Venu 2", compatibility: "Medium", metrics: ["Steps", "Heart Rate", "Sleep", "Activity"] },
-  { id: 5, name: "Xiaomi Mi Band 7", compatibility: "Medium", metrics: ["Steps", "Heart Rate", "Sleep"] },
+const chartData = [
+  { name: 'Sun', value: 35 },
+  { name: 'Mon', value: 45 },
+  { name: 'Tue', value: 30 },
+  { name: 'Wed', value: 65 },
+  { name: 'Thu', value: 40 },
+  { name: 'Fri', value: 50 },
+  { name: 'Sat', value: 25 },
 ];
 
-const SmartWatch = () => {
-  const [connectionStatus, setConnectionStatus] = useState<"disconnected" | "connecting" | "connected">("disconnected");
-  const [selectedDevice, setSelectedDevice] = useState<number | null>(null);
-  const [syncPreferences, setSyncPreferences] = useState({
-    heartRate: true,
-    steps: true,
-    sleep: true,
-    activity: true,
-  });
-  const [openDialog, setOpenDialog] = useState(false);
-  const { toast } = useToast();
+const goals = [
+  {
+    id: 1,
+    title: "Weight",
+    current: 165,
+    target: 155,
+    unit: "lbs",
+    progress: 50
+  },
+  {
+    id: 2,
+    title: "Daily Steps",
+    current: 8500,
+    target: 10000,
+    unit: "steps",
+    progress: 85
+  },
+  {
+    id: 3,
+    title: "Workouts Per Week",
+    current: 3,
+    target: 5,
+    unit: "workouts",
+    progress: 60
+  }
+];
 
-  const handleConnectClick = () => {
-    setConnectionStatus("connecting");
-    
-    setTimeout(() => {
-      if (Math.random() > 0.2) {
-        setConnectionStatus("connected");
-        toast({
-          title: "Connection Successful",
-          description: `Your ${selectedDevice ? supportedDevices.find(d => d.id === selectedDevice)?.name : "device"} is now connected!`,
-          variant: "default",
-        });
-      } else {
-        setConnectionStatus("disconnected");
-        toast({
-          title: "Connection Failed",
-          description: "Please make sure your device is nearby with Bluetooth enabled.",
-          variant: "destructive",
-        });
+const WeeklyChart = () => {
+  const maxValue = Math.max(...chartData.map(item => item.value));
+  
+  return (
+    <div className="p-4 flex flex-col h-44">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="font-medium text-fit-primary">Weekly Activity</h3>
+        <span className="text-xs text-fit-muted">Last 7 days</span>
+      </div>
+      
+      <div className="flex-1 flex items-end gap-1">
+        {chartData.map((item, index) => (
+          <div key={index} className="flex-1 flex flex-col items-center h-full justify-end">
+            <div 
+              className="w-full rounded-t-md bg-fit-accent/80"
+              style={{ height: `${(item.value / maxValue) * 100}%` }}
+            ></div>
+            <span className="text-[10px] text-fit-muted mt-1">{item.name}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const GoalCard = ({ goal }: { goal: typeof goals[0] }) => {
+  return (
+    <div className="fit-card p-4 mb-3">
+      <div className="flex justify-between items-center mb-2">
+        <h3 className="font-medium text-fit-primary">{goal.title}</h3>
+        <span className="text-xs font-medium text-fit-primary">
+          {goal.current} / {goal.target} <span className="text-fit-muted">{goal.unit}</span>
+        </span>
+      </div>
+      <div className="h-1.5 bg-fit-secondary/30 rounded-full overflow-hidden">
+        <div 
+          className="h-full bg-fit-accent rounded-full"
+          style={{ width: `${goal.progress}%` }}
+        ></div>
+      </div>
+    </div>
+  );
+};
+
+// Modified SettingItem component to handle the onClick event
+const SettingItem = ({ 
+  setting, 
+  onClick 
+}: { 
+  setting: typeof settings[0], 
+  onClick?: () => void 
+}) => {
+  return (
+    <div 
+      className={`flex justify-between items-center py-3 border-b border-border/30 last:border-0 ${setting.isDanger ? 'text-red-500' : 'text-fit-primary'}`}
+      onClick={onClick}
+      style={{ cursor: onClick ? 'pointer' : 'default' }}
+    >
+      <div className="flex items-center">
+        {setting.icon}
+        <span className="ml-3 font-medium">{setting.title}</span>
+      </div>
+      {setting.hasSwitch ? (
+        <Switch id={setting.id} />
+      ) : (
+        <ArrowLeft className="h-4 w-4 rotate-180" />
+      )}
+    </div>
+  );
+};
+
+const Profile = () => {
+  const navigate = useNavigate();
+  const [userProfile, setUserProfile] = useState<Tables<'user_profiles'> | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+  const { user, signOut } = useAuth();
+
+  // Define settings with the profile editing functionality
+  const settings = [
+    {
+      id: 'darkMode',
+      icon: <Moon className="h-5 w-5" />,
+      title: "Dark Mode",
+      hasSwitch: true
+    },
+    {
+      id: 'notifications',
+      icon: <Bell className="h-5 w-5" />,
+      title: "Notifications",
+      hasSwitch: true
+    },
+    {
+      id: 'profile',
+      icon: <Edit className="h-5 w-5" />,
+      title: "Edit Profile",
+      hasSwitch: false
+    },
+    {
+      id: 'settings',
+      icon: <Settings className="h-5 w-5" />,
+      title: "App Settings",
+      hasSwitch: false
+    },
+    {
+      id: 'logout',
+      icon: <LogOut className="h-5 w-5" />,
+      title: "Logout",
+      hasSwitch: false,
+      isDanger: true
+    }
+  ];
+
+  useEffect(() => {
+    async function fetchUserProfile() {
+      if (!user) {
+        setIsLoading(false);
+        return;
       }
-    }, 2000);
-  };
+      
+      try {
+        const { data, error } = await supabase
+          .from('user_profiles')
+          .select('*')
+          .eq('user_id', user.id)
+          .maybeSingle();
+          
+        if (error) {
+          console.error('Error fetching profile:', error);
+          toast({
+            title: "Failed to load profile",
+            description: error.message,
+            variant: "destructive"
+          });
+        } else if (data) {
+          setUserProfile(data);
+          console.log('User profile loaded:', data);
+        }
+      } catch (err) {
+        console.error('Unexpected error:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
 
-  const handleDisconnect = () => {
-    setConnectionStatus("disconnected");
-    setSelectedDevice(null);
-    toast({
-      title: "Device Disconnected",
-      description: "Your smartwatch has been disconnected.",
-    });
-  };
+    fetchUserProfile();
+  }, [user]);
 
-  const handleDeviceSelect = (deviceId: number) => {
-    setSelectedDevice(deviceId);
-    setOpenDialog(true);
-  };
-
-  const handleSyncPreferenceChange = (key: keyof typeof syncPreferences) => {
-    setSyncPreferences({
-      ...syncPreferences,
-      [key]: !syncPreferences[key],
-    });
-  };
-
-  const getStatusColor = () => {
-    switch (connectionStatus) {
-      case "connected": return "text-fit-accent";
-      case "connecting": return "text-fit-purple-light";
-      default: return "text-fit-muted";
+  const handleSettingClick = (settingId: string) => {
+    switch (settingId) {
+      case 'profile':
+        setIsEditProfileOpen(true);
+        break;
+      case 'logout':
+        signOut();
+        navigate('/');
+        break;
+      default:
+        // Handle other settings if needed
+        break;
     }
   };
+  
+  const updateGoals = [...goals];
+  if (userProfile) {
+    const weightGoal = updateGoals.find(g => g.title === "Weight");
+    if (weightGoal) {
+      weightGoal.current = userProfile.weight;
+      weightGoal.target = Math.round(userProfile.weight * 0.95);
+      weightGoal.progress = Math.min(100, Math.round(100 - ((weightGoal.current - weightGoal.target) / weightGoal.current) * 100));
+    }
+  }
 
   return (
-    <div className="min-h-screen purple-gradient">
-      <Header userName="Alex" />
-      
-      <main className="pb-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 md:px-8">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6 gap-2">
-            <h1 className="text-xl sm:text-2xl font-bold text-fit-primary">Smartwatch Integration</h1>
-            <div className="flex items-center gap-2">
-              <span className={`inline-block w-3 h-3 rounded-full ${
-                connectionStatus === "connected" ? "bg-fit-accent animate-pulse-soft" : 
-                connectionStatus === "connecting" ? "bg-fit-purple-light animate-pulse-soft" : 
-                "bg-fit-muted"
-              }`}></span>
-              <span className={`text-sm font-medium ${getStatusColor()}`}>
-                {connectionStatus === "connected" ? "Connected" : 
-                 connectionStatus === "connecting" ? "Connecting..." : 
-                 "Disconnected"}
-              </span>
-            </div>
+    <div className="min-h-screen bg-fit-background">
+      <header className="px-6 pt-12 pb-4 flex items-center">
+        <button 
+          onClick={() => navigate(-1)}
+          className="mr-4 h-10 w-10 rounded-full flex items-center justify-center bg-fit-card hover:bg-fit-secondary/10 transition-colors"
+        >
+          <ArrowLeft className="h-5 w-5 text-fit-primary" />
+        </button>
+        <h1 className="text-xl font-semibold text-fit-primary">Profile</h1>
+      </header>
+
+      <main className="pb-20 px-6">
+        {isLoading ? (
+          <div className="flex justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-fit-accent"></div>
           </div>
-
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-2">
-              {connectionStatus === "disconnected" && (
-                <Card className="purple-card mb-6 animate-fade-in">
-                  <CardHeader className="pb-2 sm:pb-4">
-                    <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-                      <Bluetooth className="text-fit-purple-dark h-5 w-5 sm:h-6 sm:w-6" />
-                      Connect Your Smartwatch
-                    </CardTitle>
-                    <CardDescription className="text-sm sm:text-base">
-                      Sync your health data in real-time for better insights
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 mb-4 sm:mb-6">
-                      <div className="flex flex-col items-center justify-center p-3 sm:p-4 bg-white/80 rounded-lg">
-                        <Heart className="w-6 h-6 sm:w-8 sm:h-8 text-fit-purple mb-1 sm:mb-2" />
-                        <span className="text-xs sm:text-sm font-medium text-center">Heart Rate</span>
-                      </div>
-                      <div className="flex flex-col items-center justify-center p-3 sm:p-4 bg-white/80 rounded-lg">
-                        <Activity className="w-6 h-6 sm:w-8 sm:h-8 text-fit-purple mb-1 sm:mb-2" />
-                        <span className="text-xs sm:text-sm font-medium text-center">Activity</span>
-                      </div>
-                      <div className="flex flex-col items-center justify-center p-3 sm:p-4 bg-white/80 rounded-lg">
-                        <Moon className="w-6 h-6 sm:w-8 sm:h-8 text-fit-purple mb-1 sm:mb-2" />
-                        <span className="text-xs sm:text-sm font-medium text-center">Sleep</span>
-                      </div>
-                      <div className="flex flex-col items-center justify-center p-3 sm:p-4 bg-white/80 rounded-lg">
-                        <Clock className="w-6 h-6 sm:w-8 sm:h-8 text-fit-purple mb-1 sm:mb-2" />
-                        <span className="text-xs sm:text-sm font-medium text-center">Steps</span>
-                      </div>
-                    </div>
-
-                    <Alert className="bg-white/70 mb-4 text-sm sm:text-base">
-                      <Bluetooth className="h-4 w-4" />
-                      <AlertTitle>Ready to connect</AlertTitle>
-                      <AlertDescription className="text-xs sm:text-sm">
-                        Make sure your smartwatch is nearby and Bluetooth is enabled on your device.
-                      </AlertDescription>
-                    </Alert>
-                    <Button className="w-full" onClick={handleConnectClick}>
-                      <Bluetooth className="mr-2 h-4 w-4" />
-                      Start Scanning
-                    </Button>
-                  </CardContent>
-                </Card>
-              )}
-
-              {connectionStatus === "connecting" && (
-                <Card className="purple-card mb-6 animate-fade-in">
-                  <CardHeader className="pb-2 sm:pb-4">
-                    <CardTitle className="text-lg sm:text-xl">Searching for Devices</CardTitle>
-                    <CardDescription className="text-sm sm:text-base">
-                      Please make sure your smartwatch is powered on and in pairing mode
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="flex flex-col items-center justify-center py-4 sm:py-6">
-                    <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full border-4 border-fit-purple-light border-t-transparent animate-spin mb-3 sm:mb-4"></div>
-                    <p className="text-sm sm:text-base text-fit-purple-text">Looking for nearby devices...</p>
-                  </CardContent>
-                </Card>
-              )}
-
-              {connectionStatus === "connected" && (
-                <Card className="purple-card mb-6 animate-fade-in">
-                  <CardHeader className="pb-2 sm:pb-4">
-                    <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-                      <Link className="text-fit-accent h-5 w-5 sm:h-6 sm:w-6" />
-                      Device Connected
-                    </CardTitle>
-                    <CardDescription className="text-sm sm:text-base">
-                      {selectedDevice ? supportedDevices.find(d => d.id === selectedDevice)?.name : "Your device"} is now connected and syncing data
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-3 sm:space-y-4">
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center gap-2">
-                          <Heart className="text-fit-purple h-4 w-4 sm:h-5 sm:w-5" />
-                          <span className="text-sm sm:text-base">Heart Rate Monitoring</span>
-                        </div>
-                        <Switch 
-                          checked={syncPreferences.heartRate}
-                          onCheckedChange={() => handleSyncPreferenceChange("heartRate")}
-                        />
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center gap-2">
-                          <Clock className="text-fit-purple h-4 w-4 sm:h-5 sm:w-5" />
-                          <span className="text-sm sm:text-base">Step Counting</span>
-                        </div>
-                        <Switch 
-                          checked={syncPreferences.steps}
-                          onCheckedChange={() => handleSyncPreferenceChange("steps")}
-                        />
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center gap-2">
-                          <Moon className="text-fit-purple h-4 w-4 sm:h-5 sm:w-5" />
-                          <span className="text-sm sm:text-base">Sleep Tracking</span>
-                        </div>
-                        <Switch 
-                          checked={syncPreferences.sleep}
-                          onCheckedChange={() => handleSyncPreferenceChange("sleep")}
-                        />
-                      </div>
-                      <div className="flex justify-between items-center">
-                        <div className="flex items-center gap-2">
-                          <Activity className="text-fit-purple h-4 w-4 sm:h-5 sm:w-5" />
-                          <span className="text-sm sm:text-base">Activity Monitoring</span>
-                        </div>
-                        <Switch 
-                          checked={syncPreferences.activity}
-                          onCheckedChange={() => handleSyncPreferenceChange("activity")}
-                        />
-                      </div>
-                    </div>
-                  </CardContent>
-                  <CardFooter>
-                    <Button variant="outline" className="w-full" onClick={handleDisconnect}>
-                      <WifiOff className="mr-2 h-4 w-4" />
-                      Disconnect Device
-                    </Button>
-                  </CardFooter>
-                </Card>
-              )}
+        ) : (
+          <>
+            <div className="fit-card p-6 mb-6 flex items-center animate-fade-in">
+              <Avatar className="h-16 w-16 border-2 border-fit-secondary">
+                <AvatarImage src="/placeholder.svg" alt={userProfile?.name || "User"} />
+                <AvatarFallback className="bg-fit-secondary text-white">
+                  {userProfile?.name ? userProfile.name.charAt(0).toUpperCase() : 'U'}
+                </AvatarFallback>
+              </Avatar>
               
-              <Card className="fit-card">
-                <CardHeader className="pb-2 sm:pb-4">
-                  <CardTitle className="text-lg sm:text-xl">Troubleshooting</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3 sm:space-y-4">
-                    <div>
-                      <h3 className="font-medium mb-1 text-sm sm:text-base">Can't find your device?</h3>
-                      <p className="text-xs sm:text-sm text-fit-muted">Make sure Bluetooth is enabled and your device is in pairing mode. Try restarting both your phone and smartwatch.</p>
-                    </div>
-                    <div>
-                      <h3 className="font-medium mb-1 text-sm sm:text-base">Data not syncing?</h3>
-                      <p className="text-xs sm:text-sm text-fit-muted">Ensure your smartwatch has the latest firmware installed and check app permissions on your phone.</p>
-                    </div>
-                    <div>
-                      <h3 className="font-medium mb-1 text-sm sm:text-base">Connection keeps dropping?</h3>
-                      <p className="text-xs sm:text-sm text-fit-muted">Try keeping your devices within 30 feet of each other and avoid interference from other electronic devices.</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="ml-4">
+                <h2 className="font-semibold text-fit-primary text-xl">{userProfile?.name || "User"}</h2>
+                <div className="flex items-center mt-1">
+                  <Badge variant="outline" className="mr-2 bg-amber-500/10 text-amber-500 border-amber-500/20">
+                    <Trophy className="h-3 w-3 mr-1" />
+                    Premium
+                  </Badge>
+                  <span className="text-xs text-fit-muted">
+                    {userProfile ? `${userProfile.age} years • ${userProfile.region}` : "Member since 2023"}
+                  </span>
+                </div>
+              </div>
             </div>
-
-            <div className="lg:col-span-1">
-              <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-fit-primary">Supported Devices</h2>
-              <div className="grid grid-cols-1 gap-3 sm:gap-4">
-                {supportedDevices.map((device) => (
-                  <Card key={device.id} className="fit-card hover:border-fit-purple-light">
-                    <CardHeader className="pb-2">
-                      <CardTitle className="text-base sm:text-lg">{device.name}</CardTitle>
-                      <CardDescription className="text-xs sm:text-sm">
-                        Compatibility: <span className={`font-medium ${
-                          device.compatibility === "High" ? "text-fit-accent" : "text-fit-purple-light"
-                        }`}>{device.compatibility}</span>
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="pb-2">
-                      <div className="flex flex-wrap gap-1">
-                        {device.metrics.map((metric) => (
-                          <span key={metric} className="bg-fit-purple-softer text-fit-purple-text px-2 py-1 rounded-full text-xs">
-                            {metric}
-                          </span>
-                        ))}
-                      </div>
-                    </CardContent>
-                    <CardFooter>
-                      <Button 
-                        variant="secondary" 
-                        size="sm" 
-                        className="w-full text-xs sm:text-sm"
-                        onClick={() => handleDeviceSelect(device.id)}
-                      >
-                        <Smartphone className="mr-2 h-3 w-3 sm:h-4 sm:w-4" />
-                        Select Device
-                      </Button>
-                    </CardFooter>
-                  </Card>
+            
+            <div className="fit-card mb-6 animate-slide-up" style={{ animationDelay: '100ms' }}>
+              <WeeklyChart />
+            </div>
+            
+            <div className="mb-6 animate-slide-up" style={{ animationDelay: '200ms' }}>
+              <h2 className="text-sm font-medium text-fit-muted mb-3">Fitness Goals</h2>
+              {updateGoals.map(goal => (
+                <GoalCard key={goal.id} goal={goal} />
+              ))}
+            </div>
+            
+            {userProfile && (
+              <div className="fit-card p-4 mb-6 animate-slide-up" style={{ animationDelay: '250ms' }}>
+                <h2 className="text-sm font-medium text-fit-primary mb-4">Personal Information</h2>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-fit-muted">Height</span>
+                    <span className="text-fit-primary font-medium">{userProfile.height} cm</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-fit-muted">Weight</span>
+                    <span className="text-fit-primary font-medium">{userProfile.weight} kg</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-fit-muted">Gender</span>
+                    <span className="text-fit-primary font-medium capitalize">{userProfile.gender}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-fit-muted">Activity Level</span>
+                    <span className="text-fit-primary font-medium capitalize">{userProfile.activity_level.replace('-', ' ')}</span>
+                  </div>
+                  {userProfile.dietary_preferences && (
+                    <div className="flex justify-between">
+                      <span className="text-fit-muted">Diet</span>
+                      <span className="text-fit-primary font-medium">{userProfile.dietary_preferences}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+            
+            <div className="fit-card p-4 mb-6 animate-slide-up" style={{ animationDelay: '300ms' }}>
+              <h2 className="text-sm font-medium text-fit-primary mb-4">Settings</h2>
+              <div>
+                {settings.map(setting => (
+                  <SettingItem 
+                    key={setting.id} 
+                    setting={setting}
+                    onClick={() => handleSettingClick(setting.id)} 
+                  />
                 ))}
               </div>
             </div>
-          </div>
-        </div>
+          </>
+        )}
       </main>
-      
-      <Dialog open={openDialog} onOpenChange={setOpenDialog}>
-        <DialogContent className="max-w-sm sm:max-w-md mx-auto">
+
+      <Dialog open={isEditProfileOpen} onOpenChange={setIsEditProfileOpen}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto w-[90vw] max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="text-lg sm:text-xl">Connect {selectedDevice && supportedDevices.find(d => d.id === selectedDevice)?.name}</DialogTitle>
-            <DialogDescription className="text-sm sm:text-base">
-              Follow these steps to pair your device.
-            </DialogDescription>
+            <DialogTitle>Edit Profile</DialogTitle>
           </DialogHeader>
-          <div className="space-y-4 py-2 sm:py-4">
-            <div className="space-y-2">
-              <Label htmlFor="pairing-code" className="text-sm sm:text-base">Pairing Code (if required)</Label>
-              <Input id="pairing-code" placeholder="Enter the code displayed on your device" className="text-sm sm:text-base" />
-            </div>
-            <ol className="list-decimal pl-4 space-y-1 sm:space-y-2 text-xs sm:text-sm">
-              <li>Enable Bluetooth on your smartphone</li>
-              <li>Open the companion app for your smartwatch</li>
-              <li>Put your smartwatch in pairing mode</li>
-              <li>Select your device from the list when it appears</li>
-              <li>Confirm the pairing code if prompted</li>
-            </ol>
-          </div>
-          <DialogFooter className="gap-2 sm:gap-3 flex-col sm:flex-row sm:justify-end">
-            <Button variant="outline" onClick={() => setOpenDialog(false)} className="w-full sm:w-auto text-sm">Cancel</Button>
-            <Button onClick={() => {
-              setOpenDialog(false);
-              handleConnectClick();
-            }} className="w-full sm:w-auto text-sm">
-              <Bluetooth className="mr-2 h-4 w-4" />
-              Connect
-            </Button>
-          </DialogFooter>
+          <EditProfileForm 
+            userProfile={userProfile} 
+            onClose={() => setIsEditProfileOpen(false)} 
+          />
         </DialogContent>
       </Dialog>
-      
+
       <Navigation />
     </div>
   );
 };
 
-export default SmartWatch;
+import { Trophy } from 'lucide-react';
+
+export default Profile;

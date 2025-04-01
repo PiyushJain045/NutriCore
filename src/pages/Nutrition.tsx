@@ -1,121 +1,78 @@
-
-import { useState, useEffect } from 'react';
-import { ArrowLeft, Apple, PieChart, Search, Plus, Brain, Utensils } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { ArrowLeft, User, Settings, Moon, Bell, BarChart2, LogOut, Edit } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { CircleProgress } from '@/components/CircleProgress';
-import { Link } from 'react-router-dom';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
-import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
 import { supabase } from '@/integrations/supabase/client';
+import { Tables } from '@/integrations/supabase/types';
+import { toast } from '@/hooks/use-toast';
+import { useAuth } from "@/contexts/AuthContext";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle
+} from "@/components/ui/dialog";
+import EditProfileForm from '@/components/EditProfileForm';
 
-interface NutritionSummaryProps {
-  calories: { consumed: number; goal: number };
-  protein: { consumed: number; goal: number };
-  carbs: { consumed: number; goal: number };
-  fat: { consumed: number; goal: number };
-}
+const chartData = [
+  { name: 'Sun', value: 35 },
+  { name: 'Mon', value: 45 },
+  { name: 'Tue', value: 30 },
+  { name: 'Wed', value: 65 },
+  { name: 'Thu', value: 40 },
+  { name: 'Fri', value: 50 },
+  { name: 'Sat', value: 25 },
+];
 
-const NutritionSummary = ({ calories, protein, carbs, fat }: NutritionSummaryProps) => {
+const goals = [
+  {
+    id: 1,
+    title: "Weight",
+    current: 165,
+    target: 155,
+    unit: "lbs",
+    progress: 50
+  },
+  {
+    id: 2,
+    title: "Daily Steps",
+    current: 8500,
+    target: 10000,
+    unit: "steps",
+    progress: 85
+  },
+  {
+    id: 3,
+    title: "Workouts Per Week",
+    current: 3,
+    target: 5,
+    unit: "workouts",
+    progress: 60
+  }
+];
+
+const WeeklyChart = () => {
+  const maxValue = Math.max(...chartData.map(item => item.value));
+  
   return (
-    <div className="fit-card p-4 mb-6 animate-fade-in">
-      <h2 className="font-semibold text-fit-primary mb-4">Today's Nutrition</h2>
-      
-      <div className="mb-4">
-        <div className="flex justify-between mb-1">
-          <span className="text-sm text-fit-primary">Calories</span>
-          <span className="text-sm text-fit-primary font-medium">
-            {calories.consumed} / {calories.goal}
-          </span>
-        </div>
-        <div className="h-2 bg-fit-secondary/30 rounded-full overflow-hidden">
-          <div 
-            className="h-full bg-fit-accent rounded-full"
-            style={{ width: `${Math.min(100, (calories.consumed / calories.goal) * 100)}%` }}
-          ></div>
-        </div>
+    <div className="p-4 flex flex-col h-44">
+      <div className="flex justify-between items-center mb-4">
+        <h3 className="font-medium text-fit-primary">Weekly Activity</h3>
+        <span className="text-xs text-fit-muted">Last 7 days</span>
       </div>
       
-      <div className="grid grid-cols-3 gap-4">
-        <div className="flex flex-col items-center">
-          <div className="relative mb-1 h-12 w-12 flex items-center justify-center">
-            <CircleProgress value={protein.consumed} maxValue={protein.goal} className="text-blue-500" />
-            <span className="text-xs font-medium absolute">{Math.round((protein.consumed / protein.goal) * 100)}%</span>
-          </div>
-          <span className="text-xs text-fit-muted">Protein</span>
-          <span className="text-xs text-fit-primary font-medium">{protein.consumed}g</span>
-        </div>
-        
-        <div className="flex flex-col items-center">
-          <div className="relative mb-1 h-12 w-12 flex items-center justify-center">
-            <CircleProgress value={carbs.consumed} maxValue={carbs.goal} className="text-amber-500" />
-            <span className="text-xs font-medium absolute">{Math.round((carbs.consumed / carbs.goal) * 100)}%</span>
-          </div>
-          <span className="text-xs text-fit-muted">Carbs</span>
-          <span className="text-xs text-fit-primary font-medium">{carbs.consumed}g</span>
-        </div>
-        
-        <div className="flex flex-col items-center">
-          <div className="relative mb-1 h-12 w-12 flex items-center justify-center">
-            <CircleProgress value={fat.consumed} maxValue={fat.goal} className="text-green-500" />
-            <span className="text-xs font-medium absolute">{Math.round((fat.consumed / fat.goal) * 100)}%</span>
-          </div>
-          <span className="text-xs text-fit-muted">Fat</span>
-          <span className="text-xs text-fit-primary font-medium">{fat.consumed}g</span>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-interface MealData {
-  id: string;
-  type: string;
-  time: string;
-  items: {
-    name: string;
-    calories: number;
-    protein: number;
-    carbs: number;
-    fat: number;
-  }[];
-  totalCalories: number;
-}
-
-interface FoodEntry {
-  id: string;
-  name: string;
-  serving_size: string;
-  calories: number;
-  protein: number;
-  carbs: number;
-  fat: number;
-  meal_type: string;
-  date: string;
-  created_at: string;
-}
-
-const MealCard = ({ meal }: { meal: MealData }) => {
-  return (
-    <div className="fit-card p-4 mb-3 animate-slide-up" style={{ animationDelay: `${meal.id * 100}ms` }}>
-      <div className="flex justify-between items-center mb-2">
-        <div>
-          <h3 className="font-medium text-fit-primary">{meal.type}</h3>
-          <p className="text-xs text-fit-muted">{meal.time}</p>
-        </div>
-        <div className="text-right">
-          <span className="text-sm font-medium text-fit-primary">{meal.totalCalories}</span>
-          <p className="text-xs text-fit-muted">calories</p>
-        </div>
-      </div>
-      
-      <div className="border-t border-border/30 pt-2 mt-2">
-        {meal.items.map((item, index) => (
-          <div key={index} className="flex justify-between items-center py-1.5">
-            <span className="text-sm text-fit-primary">{item.name}</span>
-            <span className="text-xs text-fit-muted">{item.calories} cal</span>
+      <div className="flex-1 flex items-end gap-1">
+        {chartData.map((item, index) => (
+          <div key={index} className="flex-1 flex flex-col items-center h-full justify-end">
+            <div 
+              className="w-full rounded-t-md bg-fit-accent/80"
+              style={{ height: `${(item.value / maxValue) * 100}%` }}
+            ></div>
+            <span className="text-[10px] text-fit-muted mt-1">{item.name}</span>
           </div>
         ))}
       </div>
@@ -123,104 +80,153 @@ const MealCard = ({ meal }: { meal: MealData }) => {
   );
 };
 
-const Nutrition = () => {
+const GoalCard = ({ goal }: { goal: typeof goals[0] }) => {
+  return (
+    <div className="fit-card p-4 mb-3">
+      <div className="flex justify-between items-center mb-2">
+        <h3 className="font-medium text-fit-primary">{goal.title}</h3>
+        <span className="text-xs font-medium text-fit-primary">
+          {goal.current} / {goal.target} <span className="text-fit-muted">{goal.unit}</span>
+        </span>
+      </div>
+      <div className="h-1.5 bg-fit-secondary/30 rounded-full overflow-hidden">
+        <div 
+          className="h-full bg-fit-accent rounded-full"
+          style={{ width: `${goal.progress}%` }}
+        ></div>
+      </div>
+    </div>
+  );
+};
+
+// Modified SettingItem component to handle the onClick event
+const SettingItem = ({ 
+  setting, 
+  onClick 
+}: { 
+  setting: typeof settings[0], 
+  onClick?: () => void 
+}) => {
+  return (
+    <div 
+      className={`flex justify-between items-center py-3 border-b border-border/30 last:border-0 ${setting.isDanger ? 'text-red-500' : 'text-fit-primary'}`}
+      onClick={onClick}
+      style={{ cursor: onClick ? 'pointer' : 'default' }}
+    >
+      <div className="flex items-center">
+        {setting.icon}
+        <span className="ml-3 font-medium">{setting.title}</span>
+      </div>
+      {setting.hasSwitch ? (
+        <Switch id={setting.id} />
+      ) : (
+        <ArrowLeft className="h-4 w-4 rotate-180" />
+      )}
+    </div>
+  );
+};
+
+const Profile = () => {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
-  const [meals, setMeals] = useState<MealData[]>([]);
-  const [nutritionSummary, setNutritionSummary] = useState({
-    calories: { consumed: 0, goal: 2000 },
-    protein: { consumed: 0, goal: 150 },
-    carbs: { consumed: 0, goal: 200 },
-    fat: { consumed: 0, goal: 65 }
-  });
-  const [searchTerm, setSearchTerm] = useState("");
+  const [userProfile, setUserProfile] = useState<Tables<'user_profiles'> | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
+  const { user, signOut } = useAuth();
+
+  // Define settings with the profile editing functionality
+  const settings = [
+    {
+      id: 'darkMode',
+      icon: <Moon className="h-5 w-5" />,
+      title: "Dark Mode",
+      hasSwitch: true
+    },
+    {
+      id: 'notifications',
+      icon: <Bell className="h-5 w-5" />,
+      title: "Notifications",
+      hasSwitch: true
+    },
+    {
+      id: 'profile',
+      icon: <Edit className="h-5 w-5" />,
+      title: "Edit Profile",
+      hasSwitch: false
+    },
+    {
+      id: 'settings',
+      icon: <Settings className="h-5 w-5" />,
+      title: "App Settings",
+      hasSwitch: false
+    },
+    {
+      id: 'logout',
+      icon: <LogOut className="h-5 w-5" />,
+      title: "Logout",
+      hasSwitch: false,
+      isDanger: true
+    }
+  ];
 
   useEffect(() => {
-    const fetchFoodEntries = async () => {
+    async function fetchUserProfile() {
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
+      
       try {
-        setLoading(true);
-        
-        // Get today's date in YYYY-MM-DD format
-        const today = new Date().toISOString().split('T')[0];
-        
-        const { data: foodEntries, error } = await supabase
-          .from('food_entries')
+        const { data, error } = await supabase
+          .from('user_profiles')
           .select('*')
-          .eq('date', today)
-          .order('created_at', { ascending: false });
+          .eq('user_id', user.id)
+          .maybeSingle();
           
         if (error) {
-          console.error('Error fetching food entries:', error);
-          return;
-        }
-        
-        if (!foodEntries || foodEntries.length === 0) {
-          setLoading(false);
-          return;
-        }
-        
-        // Process the food entries into meal groups
-        const mealTypes: { [key: string]: MealData } = {};
-        let totalCalories = 0;
-        let totalProtein = 0;
-        let totalCarbs = 0;
-        let totalFat = 0;
-        
-        foodEntries.forEach((entry: FoodEntry) => {
-          const mealType = entry.meal_type || 'Snack';
-          
-          if (!mealTypes[mealType]) {
-            mealTypes[mealType] = {
-              id: mealType.toLowerCase().replace(/\s+/g, '-'),
-              type: mealType,
-              time: formatTime(entry.created_at),
-              items: [],
-              totalCalories: 0
-            };
-          }
-          
-          mealTypes[mealType].items.push({
-            name: entry.name,
-            calories: entry.calories,
-            protein: entry.protein,
-            carbs: entry.carbs,
-            fat: entry.fat
+          console.error('Error fetching profile:', error);
+          toast({
+            title: "Failed to load profile",
+            description: error.message,
+            variant: "destructive"
           });
-          
-          mealTypes[mealType].totalCalories += entry.calories;
-          totalCalories += entry.calories;
-          totalProtein += entry.protein;
-          totalCarbs += entry.carbs;
-          totalFat += entry.fat;
-        });
-        
-        // Update the nutrition summary
-        setNutritionSummary({
-          calories: { consumed: Math.round(totalCalories), goal: 2000 },
-          protein: { consumed: Math.round(totalProtein), goal: 150 },
-          carbs: { consumed: Math.round(totalCarbs), goal: 200 },
-          fat: { consumed: Math.round(totalFat), goal: 65 }
-        });
-        
-        // Convert the meal types object to an array
-        const mealArray = Object.values(mealTypes);
-        setMeals(mealArray);
-        
-        setLoading(false);
-      } catch (error) {
-        console.error('Error in fetchFoodEntries:', error);
-        setLoading(false);
+        } else if (data) {
+          setUserProfile(data);
+          console.log('User profile loaded:', data);
+        }
+      } catch (err) {
+        console.error('Unexpected error:', err);
+      } finally {
+        setIsLoading(false);
       }
-    };
-    
-    fetchFoodEntries();
-  }, []);
-  
-  // Helper function to format time from ISO string
-  const formatTime = (isoString: string) => {
-    const date = new Date(isoString);
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+
+    fetchUserProfile();
+  }, [user]);
+
+  const handleSettingClick = (settingId: string) => {
+    switch (settingId) {
+      case 'profile':
+        setIsEditProfileOpen(true);
+        break;
+      case 'logout':
+        signOut();
+        navigate('/');
+        break;
+      default:
+        // Handle other settings if needed
+        break;
+    }
   };
+  
+  const updateGoals = [...goals];
+  if (userProfile) {
+    const weightGoal = updateGoals.find(g => g.title === "Weight");
+    if (weightGoal) {
+      weightGoal.current = userProfile.weight;
+      weightGoal.target = Math.round(userProfile.weight * 0.95);
+      weightGoal.progress = Math.min(100, Math.round(100 - ((weightGoal.current - weightGoal.target) / weightGoal.current) * 100));
+    }
+  }
 
   return (
     <div className="min-h-screen bg-fit-background">
@@ -231,131 +237,112 @@ const Nutrition = () => {
         >
           <ArrowLeft className="h-5 w-5 text-fit-primary" />
         </button>
-        <h1 className="text-xl font-semibold text-fit-primary">Nutrition</h1>
+        <h1 className="text-xl font-semibold text-fit-primary">Profile</h1>
       </header>
 
       <main className="pb-20 px-6">
-        <div className="relative mb-6">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-fit-muted" />
-          <Input 
-            placeholder="Search for food..." 
-            className="pl-10 bg-fit-card border-none h-12" 
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-        </div>
-
-        <NutritionSummary {...nutritionSummary} />
-        
-        <div className="fit-card p-4 mb-6 animate-slide-up" style={{ animationDelay: '100ms' }}>
-          <h2 className="font-semibold text-fit-primary mb-3">Macronutrient Breakdown</h2>
-          
-          <div className="flex items-center">
-            <div className="relative h-24 w-24 flex items-center justify-center">
-              <PieChart className="h-full w-full text-fit-muted" />
+        {isLoading ? (
+          <div className="flex justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-fit-accent"></div>
+          </div>
+        ) : (
+          <>
+            <div className="fit-card p-6 mb-6 flex items-center animate-fade-in">
+              <Avatar className="h-16 w-16 border-2 border-fit-secondary">
+                <AvatarImage src="/placeholder.svg" alt={userProfile?.name || "User"} />
+                <AvatarFallback className="bg-fit-secondary text-white">
+                  {userProfile?.name ? userProfile.name.charAt(0).toUpperCase() : 'U'}
+                </AvatarFallback>
+              </Avatar>
+              
+              <div className="ml-4">
+                <h2 className="font-semibold text-fit-primary text-xl">{userProfile?.name || "User"}</h2>
+                <div className="flex items-center mt-1">
+                  <Badge variant="outline" className="mr-2 bg-amber-500/10 text-amber-500 border-amber-500/20">
+                    <Trophy className="h-3 w-3 mr-1" />
+                    Premium
+                  </Badge>
+                  <span className="text-xs text-fit-muted">
+                    {userProfile ? `${userProfile.age} years • ${userProfile.region}` : "Member since 2023"}
+                  </span>
+                </div>
+              </div>
             </div>
             
-            <div className="flex-1 ml-4">
-              <div className="flex items-center mb-2">
-                <div className="h-3 w-3 rounded-full bg-blue-500 mr-2"></div>
-                <span className="text-xs text-fit-primary">Protein</span>
-                <span className="text-xs text-fit-muted ml-auto">
-                  {nutritionSummary.calories.consumed ? 
-                    Math.round((nutritionSummary.protein.consumed / nutritionSummary.calories.consumed * 4) * 100) : 0}%
-                </span>
+            <div className="fit-card mb-6 animate-slide-up" style={{ animationDelay: '100ms' }}>
+              <WeeklyChart />
+            </div>
+            
+            <div className="mb-6 animate-slide-up" style={{ animationDelay: '200ms' }}>
+              <h2 className="text-sm font-medium text-fit-muted mb-3">Fitness Goals</h2>
+              {updateGoals.map(goal => (
+                <GoalCard key={goal.id} goal={goal} />
+              ))}
+            </div>
+            
+            {userProfile && (
+              <div className="fit-card p-4 mb-6 animate-slide-up" style={{ animationDelay: '250ms' }}>
+                <h2 className="text-sm font-medium text-fit-primary mb-4">Personal Information</h2>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-fit-muted">Height</span>
+                    <span className="text-fit-primary font-medium">{userProfile.height} cm</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-fit-muted">Weight</span>
+                    <span className="text-fit-primary font-medium">{userProfile.weight} kg</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-fit-muted">Gender</span>
+                    <span className="text-fit-primary font-medium capitalize">{userProfile.gender}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-fit-muted">Activity Level</span>
+                    <span className="text-fit-primary font-medium capitalize">{userProfile.activity_level.replace('-', ' ')}</span>
+                  </div>
+                  {userProfile.dietary_preferences && (
+                    <div className="flex justify-between">
+                      <span className="text-fit-muted">Diet</span>
+                      <span className="text-fit-primary font-medium">{userProfile.dietary_preferences}</span>
+                    </div>
+                  )}
+                </div>
               </div>
-              
-              <div className="flex items-center mb-2">
-                <div className="h-3 w-3 rounded-full bg-amber-500 mr-2"></div>
-                <span className="text-xs text-fit-primary">Carbs</span>
-                <span className="text-xs text-fit-muted ml-auto">
-                  {nutritionSummary.calories.consumed ? 
-                    Math.round((nutritionSummary.carbs.consumed / nutritionSummary.calories.consumed * 4) * 100) : 0}%
-                </span>
-              </div>
-              
-              <div className="flex items-center mb-2">
-                <div className="h-3 w-3 rounded-full bg-green-500 mr-2"></div>
-                <span className="text-xs text-fit-primary">Fat</span>
-                <span className="text-xs text-fit-muted ml-auto">
-                  {nutritionSummary.calories.consumed ? 
-                    Math.round((nutritionSummary.fat.consumed / nutritionSummary.calories.consumed * 9) * 100) : 0}%
-                </span>
+            )}
+            
+            <div className="fit-card p-4 mb-6 animate-slide-up" style={{ animationDelay: '300ms' }}>
+              <h2 className="text-sm font-medium text-fit-primary mb-4">Settings</h2>
+              <div>
+                {settings.map(setting => (
+                  <SettingItem 
+                    key={setting.id} 
+                    setting={setting}
+                    onClick={() => handleSettingClick(setting.id)} 
+                  />
+                ))}
               </div>
             </div>
-          </div>
-        </div>
-        
-        <div className="mb-4 flex justify-between items-center">
-          <h2 className="text-sm font-medium text-fit-muted">Today's Meals</h2>
-          
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <HoverCard>
-                  <HoverCardTrigger asChild>
-                    <Button 
-                      className="relative overflow-hidden font-bold text-white shadow-lg transition-all duration-300 
-                                transform hover:scale-105 active:scale-95"
-                      style={{
-                        background: "linear-gradient(45deg, #0f766e, #059669)",
-                        padding: "0.625rem 1.25rem",
-                        borderRadius: "0.75rem"
-                      }}
-                      asChild
-                    >
-                      <Link to="/food-tracking" className="flex items-center">
-                        <Utensils className="h-5 w-5 mr-1" />
-                        <span className="mr-1">Smart Add Meal</span>
-                        <Brain className="h-4 w-4 text-white/80" />
-                      </Link>
-                    </Button>
-                  </HoverCardTrigger>
-                  <HoverCardContent className="p-3 w-56 text-center">
-                    <div className="text-sm font-medium">AI-Powered Meal Tracking!</div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Just add your food name and serving size, our AI will calculate all your macros automatically.
-                    </p>
-                  </HoverCardContent>
-                </HoverCard>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Let AI track your nutrition!</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
-        
-        {loading ? (
-          <div className="py-8 text-center">
-            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent text-fit-purple align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" role="status">
-              <span className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">Loading...</span>
-            </div>
-            <p className="mt-2 text-fit-muted">Loading your nutrition data...</p>
-          </div>
-        ) : meals.length > 0 ? (
-          meals.map(meal => (
-            <MealCard key={meal.id} meal={meal} />
-          ))
-        ) : (
-          <div className="fit-card p-8 text-center animate-fade-in">
-            <Utensils className="h-10 w-10 text-fit-muted mx-auto mb-3" />
-            <h3 className="text-lg font-medium text-fit-primary mb-2">No meals added yet</h3>
-            <p className="text-fit-muted mb-4">Start tracking your nutrition by adding your meals.</p>
-            <Button 
-              className="bg-fit-purple hover:bg-fit-purple-dark"
-              onClick={() => navigate('/food-tracking')}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Your First Meal
-            </Button>
-          </div>
+          </>
         )}
       </main>
+
+      <Dialog open={isEditProfileOpen} onOpenChange={setIsEditProfileOpen}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto w-[90vw] max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit Profile</DialogTitle>
+          </DialogHeader>
+          <EditProfileForm 
+            userProfile={userProfile} 
+            onClose={() => setIsEditProfileOpen(false)} 
+          />
+        </DialogContent>
+      </Dialog>
 
       <Navigation />
     </div>
   );
 };
 
-export default Nutrition;
+import { Trophy } from 'lucide-react';
+
+export default Profile;

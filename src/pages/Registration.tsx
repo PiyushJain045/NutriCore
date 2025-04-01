@@ -1,4 +1,3 @@
-
 import { Helmet } from "react-helmet";
 import RegistrationForm from "@/components/RegistrationForm";
 import Header from "@/components/Header";
@@ -11,7 +10,7 @@ const Registration = () => {
         <title>Register | Fitness App</title>
       </Helmet>
       
-      <Header userName="Guest" />
+      <Header />
       
       <main className="fit-container py-6">
         <h1 className="text-2xl font-bold text-fit-primary mb-6">Create Your Account</h1>
