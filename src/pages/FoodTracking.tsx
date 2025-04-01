@@ -1,14 +1,13 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { ArrowLeft, Camera, FileText, Search, PlusCircle, X, Upload, Utensils, Brain } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import Navigation from '@/components/Navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { toast } from 'sonner';
 import FoodEntryForm from '@/components/FoodEntryForm';
+import { supabase } from '@/integrations/supabase/client';
 
 const FoodTracking = () => {
   const navigate = useNavigate();
@@ -17,6 +16,7 @@ const FoodTracking = () => {
   const [showManualEntry, setShowManualEntry] = useState(false);
   const [isCameraActive, setIsCameraActive] = useState(false);
   const [showToolDescription, setShowToolDescription] = useState(true);
+  const [analyzedFoodData, setAnalyzedFoodData] = useState<any>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -93,31 +93,64 @@ const FoodTracking = () => {
     setIsCameraActive(false);
   };
 
-  const analyzeImage = () => {
+  const analyzeImage = async () => {
     if (!selectedImage) return;
     
     setIsAnalyzing(true);
     
-    // Simulate AI analysis with a timeout
-    setTimeout(() => {
+    try {
+      // Convert data URL to Blob
+      const response = await fetch(selectedImage);
+      const blob = await response.blob();
+      
+      // Create a new FormData object
+      const formData = new FormData();
+      formData.append('image', blob, 'food-image.jpg');
+      
+      // Call the Supabase Edge Function
+      const { data, error } = await supabase.functions.invoke('analyze-food-image', {
+        body: formData,
+      });
+      
+      if (error) {
+        console.error('Error analyzing image:', error);
+        toast.error("Failed to analyze the image. Please try again.");
+        setIsAnalyzing(false);
+        return;
+      }
+      
+      console.log('Gemini API response:', data);
+      
+      if (data) {
+        // Format data to match our application's expected format
+        const foodData = {
+          name: data.name || 'Unknown Food',
+          servingSize: data.servingSize || '1 serving',
+          calories: parseInt(data.calories) || 0,
+          protein: parseFloat(data.protein) || 0,
+          carbs: parseFloat(data.carbs) || 0,
+          fat: parseFloat(data.fat) || 0,
+          mealType: data.mealType || 'Snack',
+          quantity: 1
+        };
+        
+        setAnalyzedFoodData(foodData);
+        setShowManualEntry(true);
+        toast.success("Food analysis complete!");
+      } else {
+        toast.error("Could not identify the food in the image.");
+      }
+    } catch (error) {
+      console.error('Error in image analysis:', error);
+      toast.error("An error occurred during analysis.");
+    } finally {
       setIsAnalyzing(false);
-      toast.success("Food analysis complete!");
-      // Here we would normally pass the result to the form
-      setShowManualEntry(true);
-    }, 2000);
-    
-    // In a real implementation, you would call your AI service here
-    // const response = await fetch('your-ai-endpoint', {
-    //   method: 'POST',
-    //   body: JSON.stringify({ image: selectedImage }),
-    //   headers: { 'Content-Type': 'application/json' }
-    // });
-    // const data = await response.json();
-    // setAnalysisResult(data);
+    }
   };
 
   const removeImage = () => {
     setSelectedImage(null);
+    setAnalyzedFoodData(null);
   };
 
   const triggerFileInput = () => {
@@ -266,6 +299,7 @@ const FoodTracking = () => {
                     <Button 
                       className="bg-fit-purple hover:bg-fit-purple-dark text-white font-bold py-3 px-6 rounded-full shadow-lg transform hover:scale-105 transition-all"
                       size="lg"
+                      onClick={() => setShowManualEntry(true)}
                     >
                       <PlusCircle className="mr-2 h-5 w-5" />
                       Quick Add Food
@@ -308,8 +342,11 @@ const FoodTracking = () => {
           </div>
         ) : (
           <FoodEntryForm 
-            onBack={() => setShowManualEntry(false)} 
-            initialData={selectedImage ? { name: "", servingSize: "" } : undefined}
+            onBack={() => {
+              setShowManualEntry(false);
+              setAnalyzedFoodData(null);
+            }} 
+            initialData={analyzedFoodData}
           />
         )}
           

@@ -1,4 +1,5 @@
 
+import { useState, useEffect } from 'react';
 import { ArrowLeft, Apple, PieChart, Search, Plus, Brain, Utensils } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import { useNavigate } from 'react-router-dom';
@@ -8,6 +9,7 @@ import { CircleProgress } from '@/components/CircleProgress';
 import { Link } from 'react-router-dom';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { HoverCard, HoverCardContent, HoverCardTrigger } from '@/components/ui/hover-card';
+import { supabase } from '@/integrations/supabase/client';
 
 interface NutritionSummaryProps {
   calories: { consumed: number; goal: number };
@@ -68,40 +70,34 @@ const NutritionSummary = ({ calories, protein, carbs, fat }: NutritionSummaryPro
   );
 };
 
-const meals = [
-  {
-    id: 1,
-    type: "Breakfast",
-    time: "8:30 AM",
-    items: [
-      { name: "Oatmeal with Berries", calories: 320, protein: 12, carbs: 58, fat: 6 },
-      { name: "Greek Yogurt", calories: 150, protein: 17, carbs: 6, fat: 4 }
-    ],
-    totalCalories: 470
-  },
-  {
-    id: 2,
-    type: "Lunch",
-    time: "12:45 PM",
-    items: [
-      { name: "Grilled Chicken Salad", calories: 380, protein: 35, carbs: 18, fat: 16 },
-      { name: "Whole Grain Bread", calories: 120, protein: 4, carbs: 22, fat: 2 }
-    ],
-    totalCalories: 500
-  },
-  {
-    id: 3,
-    type: "Snack",
-    time: "3:30 PM",
-    items: [
-      { name: "Protein Shake", calories: 180, protein: 25, carbs: 10, fat: 3 },
-      { name: "Apple", calories: 95, protein: 0, carbs: 25, fat: 0 }
-    ],
-    totalCalories: 275
-  }
-];
+interface MealData {
+  id: string;
+  type: string;
+  time: string;
+  items: {
+    name: string;
+    calories: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+  }[];
+  totalCalories: number;
+}
 
-const MealCard = ({ meal }: { meal: typeof meals[0] }) => {
+interface FoodEntry {
+  id: string;
+  name: string;
+  serving_size: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  meal_type: string;
+  date: string;
+  created_at: string;
+}
+
+const MealCard = ({ meal }: { meal: MealData }) => {
   return (
     <div className="fit-card p-4 mb-3 animate-slide-up" style={{ animationDelay: `${meal.id * 100}ms` }}>
       <div className="flex justify-between items-center mb-2">
@@ -129,12 +125,101 @@ const MealCard = ({ meal }: { meal: typeof meals[0] }) => {
 
 const Nutrition = () => {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [meals, setMeals] = useState<MealData[]>([]);
+  const [nutritionSummary, setNutritionSummary] = useState({
+    calories: { consumed: 0, goal: 2000 },
+    protein: { consumed: 0, goal: 150 },
+    carbs: { consumed: 0, goal: 200 },
+    fat: { consumed: 0, goal: 65 }
+  });
+  const [searchTerm, setSearchTerm] = useState("");
 
-  const nutritionSummary = {
-    calories: { consumed: 1245, goal: 2000 },
-    protein: { consumed: 89, goal: 150 },
-    carbs: { consumed: 140, goal: 200 },
-    fat: { consumed: 42, goal: 65 }
+  useEffect(() => {
+    const fetchFoodEntries = async () => {
+      try {
+        setLoading(true);
+        
+        // Get today's date in YYYY-MM-DD format
+        const today = new Date().toISOString().split('T')[0];
+        
+        const { data: foodEntries, error } = await supabase
+          .from('food_entries')
+          .select('*')
+          .eq('date', today)
+          .order('created_at', { ascending: false });
+          
+        if (error) {
+          console.error('Error fetching food entries:', error);
+          return;
+        }
+        
+        if (!foodEntries || foodEntries.length === 0) {
+          setLoading(false);
+          return;
+        }
+        
+        // Process the food entries into meal groups
+        const mealTypes: { [key: string]: MealData } = {};
+        let totalCalories = 0;
+        let totalProtein = 0;
+        let totalCarbs = 0;
+        let totalFat = 0;
+        
+        foodEntries.forEach((entry: FoodEntry) => {
+          const mealType = entry.meal_type || 'Snack';
+          
+          if (!mealTypes[mealType]) {
+            mealTypes[mealType] = {
+              id: mealType.toLowerCase().replace(/\s+/g, '-'),
+              type: mealType,
+              time: formatTime(entry.created_at),
+              items: [],
+              totalCalories: 0
+            };
+          }
+          
+          mealTypes[mealType].items.push({
+            name: entry.name,
+            calories: entry.calories,
+            protein: entry.protein,
+            carbs: entry.carbs,
+            fat: entry.fat
+          });
+          
+          mealTypes[mealType].totalCalories += entry.calories;
+          totalCalories += entry.calories;
+          totalProtein += entry.protein;
+          totalCarbs += entry.carbs;
+          totalFat += entry.fat;
+        });
+        
+        // Update the nutrition summary
+        setNutritionSummary({
+          calories: { consumed: Math.round(totalCalories), goal: 2000 },
+          protein: { consumed: Math.round(totalProtein), goal: 150 },
+          carbs: { consumed: Math.round(totalCarbs), goal: 200 },
+          fat: { consumed: Math.round(totalFat), goal: 65 }
+        });
+        
+        // Convert the meal types object to an array
+        const mealArray = Object.values(mealTypes);
+        setMeals(mealArray);
+        
+        setLoading(false);
+      } catch (error) {
+        console.error('Error in fetchFoodEntries:', error);
+        setLoading(false);
+      }
+    };
+    
+    fetchFoodEntries();
+  }, []);
+  
+  // Helper function to format time from ISO string
+  const formatTime = (isoString: string) => {
+    const date = new Date(isoString);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   return (
@@ -152,7 +237,12 @@ const Nutrition = () => {
       <main className="pb-20 px-6">
         <div className="relative mb-6">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-fit-muted" />
-          <Input placeholder="Search for food..." className="pl-10 bg-fit-card border-none h-12" />
+          <Input 
+            placeholder="Search for food..." 
+            className="pl-10 bg-fit-card border-none h-12" 
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
         </div>
 
         <NutritionSummary {...nutritionSummary} />
@@ -169,19 +259,28 @@ const Nutrition = () => {
               <div className="flex items-center mb-2">
                 <div className="h-3 w-3 rounded-full bg-blue-500 mr-2"></div>
                 <span className="text-xs text-fit-primary">Protein</span>
-                <span className="text-xs text-fit-muted ml-auto">{Math.round((nutritionSummary.protein.consumed / nutritionSummary.calories.consumed * 4) * 100)}%</span>
+                <span className="text-xs text-fit-muted ml-auto">
+                  {nutritionSummary.calories.consumed ? 
+                    Math.round((nutritionSummary.protein.consumed / nutritionSummary.calories.consumed * 4) * 100) : 0}%
+                </span>
               </div>
               
               <div className="flex items-center mb-2">
                 <div className="h-3 w-3 rounded-full bg-amber-500 mr-2"></div>
                 <span className="text-xs text-fit-primary">Carbs</span>
-                <span className="text-xs text-fit-muted ml-auto">{Math.round((nutritionSummary.carbs.consumed / nutritionSummary.calories.consumed * 4) * 100)}%</span>
+                <span className="text-xs text-fit-muted ml-auto">
+                  {nutritionSummary.calories.consumed ? 
+                    Math.round((nutritionSummary.carbs.consumed / nutritionSummary.calories.consumed * 4) * 100) : 0}%
+                </span>
               </div>
               
               <div className="flex items-center mb-2">
                 <div className="h-3 w-3 rounded-full bg-green-500 mr-2"></div>
                 <span className="text-xs text-fit-primary">Fat</span>
-                <span className="text-xs text-fit-muted ml-auto">{Math.round((nutritionSummary.fat.consumed / nutritionSummary.calories.consumed * 9) * 100)}%</span>
+                <span className="text-xs text-fit-muted ml-auto">
+                  {nutritionSummary.calories.consumed ? 
+                    Math.round((nutritionSummary.fat.consumed / nutritionSummary.calories.consumed * 9) * 100) : 0}%
+                </span>
               </div>
             </div>
           </div>
@@ -227,9 +326,31 @@ const Nutrition = () => {
           </TooltipProvider>
         </div>
         
-        {meals.map(meal => (
-          <MealCard key={meal.id} meal={meal} />
-        ))}
+        {loading ? (
+          <div className="py-8 text-center">
+            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent text-fit-purple align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" role="status">
+              <span className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">Loading...</span>
+            </div>
+            <p className="mt-2 text-fit-muted">Loading your nutrition data...</p>
+          </div>
+        ) : meals.length > 0 ? (
+          meals.map(meal => (
+            <MealCard key={meal.id} meal={meal} />
+          ))
+        ) : (
+          <div className="fit-card p-8 text-center animate-fade-in">
+            <Utensils className="h-10 w-10 text-fit-muted mx-auto mb-3" />
+            <h3 className="text-lg font-medium text-fit-primary mb-2">No meals added yet</h3>
+            <p className="text-fit-muted mb-4">Start tracking your nutrition by adding your meals.</p>
+            <Button 
+              className="bg-fit-purple hover:bg-fit-purple-dark"
+              onClick={() => navigate('/food-tracking')}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Your First Meal
+            </Button>
+          </div>
+        )}
       </main>
 
       <Navigation />
