@@ -1,4 +1,5 @@
 
+import { useEffect, useState } from 'react';
 import { ArrowLeft, User, Settings, Moon, Bell, BarChart2, LogOut } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import { useNavigate } from 'react-router-dom';
@@ -6,6 +7,9 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { CircleProgress } from '@/components/CircleProgress';
+import { supabase } from '@/integrations/supabase/client';
+import { Tables } from '@/integrations/supabase/types';
+import { toast } from '@/hooks/use-toast';
 
 const chartData = [
   { name: 'Sun', value: 35 },
@@ -140,6 +144,52 @@ const SettingItem = ({ setting }: { setting: typeof settings[0] }) => {
 
 const Profile = () => {
   const navigate = useNavigate();
+  const [userProfile, setUserProfile] = useState<Tables<'user_profiles'> | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchUserProfile() {
+      try {
+        const { data, error } = await supabase
+          .from('user_profiles')
+          .select('*')
+          .limit(1)
+          .maybeSingle();
+          
+        if (error) {
+          console.error('Error fetching profile:', error);
+          toast({
+            title: "Failed to load profile",
+            description: error.message,
+            variant: "destructive"
+          });
+        } else if (data) {
+          setUserProfile(data);
+          console.log('User profile loaded:', data);
+        }
+      } catch (err) {
+        console.error('Unexpected error:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+
+    fetchUserProfile();
+  }, []);
+
+  // Update goals if user profile exists
+  const updatedGoals = [...goals];
+  if (userProfile) {
+    // Replace the weight goal with actual data if available
+    const weightGoal = updatedGoals.find(g => g.title === "Weight");
+    if (weightGoal) {
+      weightGoal.current = userProfile.weight;
+      // Calculate a target weight based on current weight (5% less)
+      weightGoal.target = Math.round(userProfile.weight * 0.95);
+      // Calculate progress
+      weightGoal.progress = Math.min(100, Math.round((weightGoal.target / weightGoal.current) * 100));
+    }
+  }
 
   return (
     <div className="min-h-screen bg-fit-background">
@@ -154,43 +204,85 @@ const Profile = () => {
       </header>
 
       <main className="pb-20 px-6">
-        <div className="fit-card p-6 mb-6 flex items-center animate-fade-in">
-          <Avatar className="h-16 w-16 border-2 border-fit-secondary">
-            <AvatarImage src="/placeholder.svg" alt="Alex" />
-            <AvatarFallback className="bg-fit-secondary text-white">A</AvatarFallback>
-          </Avatar>
-          
-          <div className="ml-4">
-            <h2 className="font-semibold text-fit-primary text-xl">Alex Johnson</h2>
-            <div className="flex items-center mt-1">
-              <Badge variant="outline" className="mr-2 bg-amber-500/10 text-amber-500 border-amber-500/20">
-                <Trophy className="h-3 w-3 mr-1" />
-                Premium
-              </Badge>
-              <span className="text-xs text-fit-muted">Member since 2023</span>
+        {isLoading ? (
+          <div className="flex justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-fit-accent"></div>
+          </div>
+        ) : (
+          <>
+            <div className="fit-card p-6 mb-6 flex items-center animate-fade-in">
+              <Avatar className="h-16 w-16 border-2 border-fit-secondary">
+                <AvatarImage src="/placeholder.svg" alt={userProfile?.name || "User"} />
+                <AvatarFallback className="bg-fit-secondary text-white">
+                  {userProfile?.name ? userProfile.name.charAt(0).toUpperCase() : 'U'}
+                </AvatarFallback>
+              </Avatar>
+              
+              <div className="ml-4">
+                <h2 className="font-semibold text-fit-primary text-xl">{userProfile?.name || "User"}</h2>
+                <div className="flex items-center mt-1">
+                  <Badge variant="outline" className="mr-2 bg-amber-500/10 text-amber-500 border-amber-500/20">
+                    <Trophy className="h-3 w-3 mr-1" />
+                    Premium
+                  </Badge>
+                  <span className="text-xs text-fit-muted">
+                    {userProfile ? `${userProfile.age} years • ${userProfile.region}` : "Member since 2023"}
+                  </span>
+                </div>
+              </div>
             </div>
-          </div>
-        </div>
-        
-        <div className="fit-card mb-6 animate-slide-up" style={{ animationDelay: '100ms' }}>
-          <WeeklyChart />
-        </div>
-        
-        <div className="mb-6 animate-slide-up" style={{ animationDelay: '200ms' }}>
-          <h2 className="text-sm font-medium text-fit-muted mb-3">Fitness Goals</h2>
-          {goals.map(goal => (
-            <GoalCard key={goal.id} goal={goal} />
-          ))}
-        </div>
-        
-        <div className="fit-card p-4 mb-6 animate-slide-up" style={{ animationDelay: '300ms' }}>
-          <h2 className="text-sm font-medium text-fit-primary mb-4">Settings</h2>
-          <div>
-            {settings.map(setting => (
-              <SettingItem key={setting.id} setting={setting} />
-            ))}
-          </div>
-        </div>
+            
+            <div className="fit-card mb-6 animate-slide-up" style={{ animationDelay: '100ms' }}>
+              <WeeklyChart />
+            </div>
+            
+            <div className="mb-6 animate-slide-up" style={{ animationDelay: '200ms' }}>
+              <h2 className="text-sm font-medium text-fit-muted mb-3">Fitness Goals</h2>
+              {updatedGoals.map(goal => (
+                <GoalCard key={goal.id} goal={goal} />
+              ))}
+            </div>
+            
+            {userProfile && (
+              <div className="fit-card p-4 mb-6 animate-slide-up" style={{ animationDelay: '250ms' }}>
+                <h2 className="text-sm font-medium text-fit-primary mb-4">Personal Information</h2>
+                <div className="space-y-3">
+                  <div className="flex justify-between">
+                    <span className="text-fit-muted">Height</span>
+                    <span className="text-fit-primary font-medium">{userProfile.height} cm</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-fit-muted">Weight</span>
+                    <span className="text-fit-primary font-medium">{userProfile.weight} kg</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-fit-muted">Gender</span>
+                    <span className="text-fit-primary font-medium capitalize">{userProfile.gender}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-fit-muted">Activity Level</span>
+                    <span className="text-fit-primary font-medium capitalize">{userProfile.activity_level.replace('-', ' ')}</span>
+                  </div>
+                  {userProfile.dietary_preferences && (
+                    <div className="flex justify-between">
+                      <span className="text-fit-muted">Diet</span>
+                      <span className="text-fit-primary font-medium">{userProfile.dietary_preferences}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+            
+            <div className="fit-card p-4 mb-6 animate-slide-up" style={{ animationDelay: '300ms' }}>
+              <h2 className="text-sm font-medium text-fit-primary mb-4">Settings</h2>
+              <div>
+                {settings.map(setting => (
+                  <SettingItem key={setting.id} setting={setting} />
+                ))}
+              </div>
+            </div>
+          </>
+        )}
       </main>
 
       <Navigation />
