@@ -141,11 +141,10 @@ const Nutrition = () => {
                 </p>
                 <Progress 
                   value={calculatePercentage(macro.consumed, macro.goal)} 
-                  className="h-1 mt-1"
-                  indicatorColor={
-                    key === "protein" ? "bg-green-500" : 
-                    key === "carbs" ? "bg-amber-500" : "bg-purple-500"
-                  }
+                  className={`h-1 mt-1 ${
+                    key === "protein" ? "bg-green-500/20" : 
+                    key === "carbs" ? "bg-amber-500/20" : "bg-purple-500/20"
+                  }`}
                 />
               </div>
             ))}
