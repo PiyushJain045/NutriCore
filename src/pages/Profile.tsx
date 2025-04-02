@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { ArrowLeft, User, Settings, Moon, Bell, BarChart2, LogOut } from 'lucide-react';
 import Navigation from '@/components/Navigation';
@@ -127,8 +128,20 @@ const GoalCard = ({ goal }: { goal: typeof goals[0] }) => {
 };
 
 const SettingItem = ({ setting }: { setting: typeof settings[0] }) => {
+  const navigate = useNavigate();
+  
+  const handleClick = () => {
+    if (setting.id === 'profile') {
+      navigate('/register');
+    }
+  };
+  
   return (
-    <div className={`flex justify-between items-center py-3 border-b border-border/30 last:border-0 ${setting.isDanger ? 'text-red-500' : 'text-fit-primary'}`}>
+    <div 
+      className={`flex justify-between items-center py-3 border-b border-border/30 last:border-0 ${setting.isDanger ? 'text-red-500' : 'text-fit-primary'}`}
+      onClick={handleClick}
+      style={{ cursor: setting.hasSwitch ? 'default' : 'pointer' }}
+    >
       <div className="flex items-center">
         {setting.icon}
         <span className="ml-3 font-medium">{setting.title}</span>
