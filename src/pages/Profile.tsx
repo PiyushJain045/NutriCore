@@ -1,6 +1,5 @@
-
 import { useEffect, useState } from 'react';
-import { ArrowLeft, User, Settings, Moon, Bell, BarChart2, LogOut, Edit } from 'lucide-react';
+import { ArrowLeft, User, Settings, Moon, Bell, BarChart2, LogOut } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import { useNavigate } from 'react-router-dom';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -11,13 +10,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { Tables } from '@/integrations/supabase/types';
 import { toast } from '@/hooks/use-toast';
 import { useAuth } from "@/contexts/AuthContext";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle
-} from "@/components/ui/dialog";
-import EditProfileForm from '@/components/EditProfileForm';
 
 const chartData = [
   { name: 'Sun', value: 35 },
@@ -53,6 +45,40 @@ const goals = [
     target: 5,
     unit: "workouts",
     progress: 60
+  }
+];
+
+const settings = [
+  {
+    id: 'darkMode',
+    icon: <Moon className="h-5 w-5" />,
+    title: "Dark Mode",
+    hasSwitch: true
+  },
+  {
+    id: 'notifications',
+    icon: <Bell className="h-5 w-5" />,
+    title: "Notifications",
+    hasSwitch: true
+  },
+  {
+    id: 'profile',
+    icon: <User className="h-5 w-5" />,
+    title: "Edit Profile",
+    hasSwitch: false
+  },
+  {
+    id: 'settings',
+    icon: <Settings className="h-5 w-5" />,
+    title: "App Settings",
+    hasSwitch: false
+  },
+  {
+    id: 'logout',
+    icon: <LogOut className="h-5 w-5" />,
+    title: "Logout",
+    hasSwitch: false,
+    isDanger: true
   }
 ];
 
@@ -100,25 +126,9 @@ const GoalCard = ({ goal }: { goal: typeof goals[0] }) => {
   );
 };
 
-const SettingItem = ({ 
-  setting, 
-  onClick 
-}: { 
-  setting: {
-    id: string;
-    icon: React.ReactNode;
-    title: string;
-    hasSwitch: boolean;
-    isDanger?: boolean;
-  }, 
-  onClick?: () => void 
-}) => {
+const SettingItem = ({ setting }: { setting: typeof settings[0] }) => {
   return (
-    <div 
-      className={`flex justify-between items-center py-3 border-b border-border/30 last:border-0 ${setting.isDanger ? 'text-red-500' : 'text-fit-primary'}`}
-      onClick={onClick}
-      style={{ cursor: onClick ? 'pointer' : 'default' }}
-    >
+    <div className={`flex justify-between items-center py-3 border-b border-border/30 last:border-0 ${setting.isDanger ? 'text-red-500' : 'text-fit-primary'}`}>
       <div className="flex items-center">
         {setting.icon}
         <span className="ml-3 font-medium">{setting.title}</span>
@@ -136,42 +146,7 @@ const Profile = () => {
   const navigate = useNavigate();
   const [userProfile, setUserProfile] = useState<Tables<'user_profiles'> | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
-  const { user, signOut } = useAuth();
-
-  const settingsItems = [
-    {
-      id: 'darkMode',
-      icon: <Moon className="h-5 w-5" />,
-      title: "Dark Mode",
-      hasSwitch: true
-    },
-    {
-      id: 'notifications',
-      icon: <Bell className="h-5 w-5" />,
-      title: "Notifications",
-      hasSwitch: true
-    },
-    {
-      id: 'profile',
-      icon: <Edit className="h-5 w-5" />,
-      title: "Edit Profile",
-      hasSwitch: false
-    },
-    {
-      id: 'settings',
-      icon: <Settings className="h-5 w-5" />,
-      title: "App Settings",
-      hasSwitch: false
-    },
-    {
-      id: 'logout',
-      icon: <LogOut className="h-5 w-5" />,
-      title: "Logout",
-      hasSwitch: false,
-      isDanger: true
-    }
-  ];
+  const { user } = useAuth();
 
   useEffect(() => {
     async function fetchUserProfile() {
@@ -207,28 +182,14 @@ const Profile = () => {
 
     fetchUserProfile();
   }, [user]);
-
-  const handleSettingClick = (settingId: string) => {
-    switch (settingId) {
-      case 'profile':
-        setIsEditProfileOpen(true);
-        break;
-      case 'logout':
-        signOut();
-        navigate('/');
-        break;
-      default:
-        break;
-    }
-  };
   
-  const updateGoals = [...goals];
+  const updatedGoals = [...goals];
   if (userProfile) {
-    const weightGoal = updateGoals.find(g => g.title === "Weight");
+    const weightGoal = updatedGoals.find(g => g.title === "Weight");
     if (weightGoal) {
       weightGoal.current = userProfile.weight;
       weightGoal.target = Math.round(userProfile.weight * 0.95);
-      weightGoal.progress = Math.min(100, Math.round(100 - ((weightGoal.current - weightGoal.target) / weightGoal.current) * 100));
+      weightGoal.progress = Math.min(100, Math.round((weightGoal.target / weightGoal.current) * 100));
     }
   }
 
@@ -279,7 +240,7 @@ const Profile = () => {
             
             <div className="mb-6 animate-slide-up" style={{ animationDelay: '200ms' }}>
               <h2 className="text-sm font-medium text-fit-muted mb-3">Fitness Goals</h2>
-              {updateGoals.map(goal => (
+              {updatedGoals.map(goal => (
                 <GoalCard key={goal.id} goal={goal} />
               ))}
             </div>
@@ -317,30 +278,14 @@ const Profile = () => {
             <div className="fit-card p-4 mb-6 animate-slide-up" style={{ animationDelay: '300ms' }}>
               <h2 className="text-sm font-medium text-fit-primary mb-4">Settings</h2>
               <div>
-                {settingsItems.map(setting => (
-                  <SettingItem 
-                    key={setting.id} 
-                    setting={setting}
-                    onClick={() => handleSettingClick(setting.id)} 
-                  />
+                {settings.map(setting => (
+                  <SettingItem key={setting.id} setting={setting} />
                 ))}
               </div>
             </div>
           </>
         )}
       </main>
-
-      <Dialog open={isEditProfileOpen} onOpenChange={setIsEditProfileOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto w-[90vw] max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>Edit Profile</DialogTitle>
-          </DialogHeader>
-          <EditProfileForm 
-            userProfile={userProfile} 
-            onClose={() => setIsEditProfileOpen(false)} 
-          />
-        </DialogContent>
-      </Dialog>
 
       <Navigation />
     </div>
