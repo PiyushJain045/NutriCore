@@ -103,7 +103,7 @@ const SettingItem = ({
   setting, 
   onClick 
 }: { 
-  setting: typeof settings[0], 
+  setting: typeof settingsItems[0], 
   onClick?: () => void 
 }) => {
   return (
@@ -132,7 +132,7 @@ const Profile = () => {
   const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
   const { user, signOut } = useAuth();
 
-  const settings = [
+  const settingsItems = [
     {
       id: 'darkMode',
       icon: <Moon className="h-5 w-5" />,
@@ -272,7 +272,7 @@ const Profile = () => {
             
             <div className="mb-6 animate-slide-up" style={{ animationDelay: '200ms' }}>
               <h2 className="text-sm font-medium text-fit-muted mb-3">Fitness Goals</h2>
-              {updatedGoals.map(goal => (
+              {updateGoals.map(goal => (
                 <GoalCard key={goal.id} goal={goal} />
               ))}
             </div>
@@ -310,7 +310,7 @@ const Profile = () => {
             <div className="fit-card p-4 mb-6 animate-slide-up" style={{ animationDelay: '300ms' }}>
               <h2 className="text-sm font-medium text-fit-primary mb-4">Settings</h2>
               <div>
-                {settings.map(setting => (
+                {settingsItems.map(setting => (
                   <SettingItem 
                     key={setting.id} 
                     setting={setting}
