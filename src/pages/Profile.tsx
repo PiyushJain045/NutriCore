@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from 'react';
 import { ArrowLeft, User, Settings, Moon, Bell, BarChart2, LogOut, Edit } from 'lucide-react';
 import Navigation from '@/components/Navigation';
@@ -103,7 +104,13 @@ const SettingItem = ({
   setting, 
   onClick 
 }: { 
-  setting: typeof settingsItems[0], 
+  setting: {
+    id: string;
+    icon: React.ReactNode;
+    title: string;
+    hasSwitch: boolean;
+    isDanger?: boolean;
+  }, 
   onClick?: () => void 
 }) => {
   return (
