@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import {
   BarChart,
@@ -53,6 +53,7 @@ const NutritionAnalysis = () => {
     
     setLoading(true);
     try {
+      console.log("Fetching food entries for user:", user.id, "on date:", selectedDate);
       const { data, error } = await supabase
         .from('food_entries')
         .select('*')
@@ -64,6 +65,7 @@ const NutritionAnalysis = () => {
         throw error;
       }
 
+      console.log("Food entries fetched:", data?.length || 0, "entries");
       setFoodEntries(data || []);
     } catch (error: any) {
       console.error('Error fetching food entries:', error);
@@ -159,7 +161,11 @@ const NutritionAnalysis = () => {
       {foodEntries.length === 0 ? (
         <Card>
           <CardContent className="py-6">
-            <p className="text-center text-gray-500">No food entries for this date.</p>
+            <div className="flex flex-col items-center gap-3 text-center">
+              <AlertCircle className="h-8 w-8 text-amber-500" />
+              <p className="text-gray-500">No food entries found for this date.</p>
+              <p className="text-sm text-gray-400">Try selecting a different date or add food entries in the Food Tracking page.</p>
+            </div>
           </CardContent>
         </Card>
       ) : (
@@ -211,7 +217,7 @@ const NutritionAnalysis = () => {
                         <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip />
+                    <Tooltip formatter={(value) => `${value}g`} />
                   </PieChart>
                 </ResponsiveContainer>
               </div>

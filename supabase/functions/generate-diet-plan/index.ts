@@ -20,6 +20,7 @@ serve(async (req) => {
   try {
     // Check API keys
     if (!GEMINI_API_KEY) {
+      console.error("Missing Gemini API key");
       return new Response(
         JSON.stringify({ error: 'Gemini API key not configured' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
@@ -27,21 +28,25 @@ serve(async (req) => {
     }
 
     if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      console.error("Missing Supabase credentials");
       return new Response(
         JSON.stringify({ error: 'Supabase credentials not configured' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
       );
     }
 
-    // Get user profile data from request
+    // Get user id from request
     const { userId } = await req.json();
     
     if (!userId) {
+      console.error("Missing user ID in request");
       return new Response(
         JSON.stringify({ error: 'User ID is required' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 }
       );
     }
+
+    console.log("Processing diet plan request for user:", userId);
 
     // Initialize Supabase client
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
@@ -51,9 +56,10 @@ serve(async (req) => {
       .from('user_profiles')
       .select('*')
       .eq('user_id', userId)
-      .single();
+      .maybeSingle();
     
     if (profileError) {
+      console.error("Profile fetch error:", profileError);
       return new Response(
         JSON.stringify({ error: 'Error fetching user profile', details: profileError }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
@@ -61,11 +67,14 @@ serve(async (req) => {
     }
 
     if (!userProfile) {
+      console.error("User profile not found");
       return new Response(
         JSON.stringify({ error: 'User profile not found' }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 404 }
       );
     }
+
+    console.log("User profile fetched:", userProfile.id);
 
     // Construct prompt for Gemini with user profile data
     const prompt = `
@@ -117,14 +126,16 @@ serve(async (req) => {
         "fat": 00
       },
       "hydration": {
-        "amount": 0.0,
-        "schedule": "Description of when to drink water throughout the day"
+        "total_liters": 0.0,
+        "reminder_times": ["8:00 AM", "11:00 AM", "2:00 PM", "5:00 PM", "8:00 PM"]
       },
       "special_note": "Any special considerations based on the user's profile"
     }
     
     Return only the JSON with no additional text before or after.
     `;
+
+    console.log("Calling Gemini API");
 
     // Call Gemini API
     const geminiResponse = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
@@ -149,37 +160,73 @@ serve(async (req) => {
 
     if (!geminiResponse.ok) {
       const errorData = await geminiResponse.text();
+      console.error("Gemini API error:", errorData);
       return new Response(
         JSON.stringify({ error: 'Error from Gemini API', details: errorData }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
       );
     }
 
+    console.log("Gemini response received");
     const geminiData = await geminiResponse.json();
     
     if (!geminiData.candidates || !geminiData.candidates[0] || !geminiData.candidates[0].content || !geminiData.candidates[0].content.parts || !geminiData.candidates[0].content.parts[0].text) {
+      console.error("Invalid response format from Gemini:", geminiData);
       return new Response(
-        JSON.stringify({ error: 'Invalid response from Gemini API' }),
+        JSON.stringify({ error: 'Invalid response from Gemini API', details: geminiData }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
       );
     }
 
     // Extract and parse the JSON from Gemini response
     const geminiText = geminiData.candidates[0].content.parts[0].text;
+    console.log("Raw Gemini response:", geminiText.substring(0, 100) + "...");
+    
     let dietPlan;
     
     try {
       // Find and extract JSON content (handling cases where Gemini wraps JSON in markdown code blocks)
       const jsonMatch = geminiText.match(/```json\n([\s\S]*)\n```/) || geminiText.match(/```\n([\s\S]*)\n```/) || [null, geminiText];
       const jsonContent = jsonMatch[1] || geminiText;
-      dietPlan = JSON.parse(jsonContent.trim());
+      const cleanedContent = jsonContent.trim().replace(/\\n/g, "").replace(/^```json/, "").replace(/```$/, "");
+      
+      console.log("Attempting to parse JSON:", cleanedContent.substring(0, 100) + "...");
+      dietPlan = JSON.parse(cleanedContent);
+      
+      // Ensure hydration has the correct structure
+      if (typeof dietPlan.hydration === 'object' && !Array.isArray(dietPlan.hydration)) {
+        if (!dietPlan.hydration.reminder_times && dietPlan.hydration.schedule) {
+          // Convert schedule string to reminder_times array if needed
+          const scheduleText = dietPlan.hydration.schedule;
+          // Extract times from the schedule text using regex
+          const timeRegex = /(\d{1,2}(?::\d{2})?\s*(?:AM|PM|am|pm))/g;
+          const times = scheduleText.match(timeRegex) || ["8:00 AM", "12:00 PM", "4:00 PM", "8:00 PM"];
+          
+          dietPlan.hydration = {
+            ...dietPlan.hydration,
+            total_liters: dietPlan.hydration.amount || dietPlan.hydration.total_liters || 2.5,
+            reminder_times: times
+          };
+        }
+      } else {
+        // Create default hydration if missing or invalid
+        dietPlan.hydration = {
+          total_liters: 2.5,
+          reminder_times: ["8:00 AM", "12:00 PM", "4:00 PM", "8:00 PM"]
+        };
+      }
+      
+      console.log("Diet plan parsed successfully");
     } catch (error) {
+      console.error("JSON parsing error:", error, "Raw text:", geminiText);
       return new Response(
         JSON.stringify({ error: 'Failed to parse diet plan from Gemini response', details: error.message, response: geminiText }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
       );
     }
 
+    console.log("Storing diet plan in database");
+    
     // Store diet plan in database
     const { data: insertData, error: insertError } = await supabase
       .from('diet_plans')
@@ -191,21 +238,25 @@ serve(async (req) => {
         dinner: dietPlan.dinner,
         hydration: dietPlan.hydration,
         special_note: dietPlan.special_note
-      }, { onConflict: 'user_id' })
+      })
       .select();
 
     if (insertError) {
+      console.error("Database insert error:", insertError);
       return new Response(
         JSON.stringify({ error: 'Error storing diet plan', details: insertError }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
       );
     }
 
+    console.log("Diet plan stored successfully");
+    
     return new Response(
       JSON.stringify({ success: true, dietPlan }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     );
   } catch (error) {
+    console.error("Unexpected error:", error);
     return new Response(
       JSON.stringify({ error: 'Internal server error', details: error.message }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }

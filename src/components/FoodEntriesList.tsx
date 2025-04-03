@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Loader2 } from 'lucide-react';
+import { Loader2, AlertCircle } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface FoodEntry {
@@ -31,6 +31,7 @@ const FoodEntriesList = () => {
     
     setLoading(true);
     try {
+      console.log("Fetching food entries for user:", user.id, "on date:", selectedDate);
       const { data, error } = await supabase
         .from('food_entries')
         .select('*')
@@ -42,6 +43,7 @@ const FoodEntriesList = () => {
         throw error;
       }
 
+      console.log("Food entries fetched:", data?.length || 0, "entries");
       setFoodEntries(data || []);
     } catch (error: any) {
       console.error('Error fetching food entries:', error);
@@ -78,38 +80,44 @@ const FoodEntriesList = () => {
       {foodEntries.length === 0 ? (
         <Card>
           <CardContent className="py-6">
-            <p className="text-center text-gray-500">No food entries for this date.</p>
+            <div className="flex flex-col items-center gap-3 text-center">
+              <AlertCircle className="h-8 w-8 text-amber-500" />
+              <p className="text-center text-gray-500">No food entries for this date.</p>
+              <p className="text-sm text-gray-400">Try selecting a different date or add food entries in the Food Tracking page.</p>
+            </div>
           </CardContent>
         </Card>
       ) : (
         <Card>
-          <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Food</TableHead>
-                  <TableHead>Meal Type</TableHead>
-                  <TableHead>Serving</TableHead>
-                  <TableHead>Calories</TableHead>
-                  <TableHead>Protein</TableHead>
-                  <TableHead>Carbs</TableHead>
-                  <TableHead>Fat</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {foodEntries.map(entry => (
-                  <TableRow key={entry.id}>
-                    <TableCell className="font-medium">{entry.name}</TableCell>
-                    <TableCell>{entry.meal_type}</TableCell>
-                    <TableCell>{entry.serving_size}</TableCell>
-                    <TableCell>{entry.calories}</TableCell>
-                    <TableCell>{entry.protein}g</TableCell>
-                    <TableCell>{entry.carbs}g</TableCell>
-                    <TableCell>{entry.fat}g</TableCell>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Food</TableHead>
+                    <TableHead>Meal Type</TableHead>
+                    <TableHead>Serving</TableHead>
+                    <TableHead>Calories</TableHead>
+                    <TableHead>Protein</TableHead>
+                    <TableHead>Carbs</TableHead>
+                    <TableHead>Fat</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {foodEntries.map(entry => (
+                    <TableRow key={entry.id}>
+                      <TableCell className="font-medium">{entry.name}</TableCell>
+                      <TableCell>{entry.meal_type}</TableCell>
+                      <TableCell>{entry.serving_size}</TableCell>
+                      <TableCell>{entry.calories}</TableCell>
+                      <TableCell>{entry.protein}g</TableCell>
+                      <TableCell>{entry.carbs}g</TableCell>
+                      <TableCell>{entry.fat}g</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </CardContent>
         </Card>
       )}
