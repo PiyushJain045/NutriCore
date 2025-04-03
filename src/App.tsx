@@ -15,6 +15,7 @@ import Profile from "./pages/Profile";
 import SmartWatch from "./pages/SmartWatch";
 import Registration from "./pages/Registration";
 import FoodTracking from "./pages/FoodTracking";
+import DietPlanPage from "./pages/DietPlanPage";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -59,6 +60,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <FoodTracking />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/diet-plan" 
+              element={
+                <ProtectedRoute>
+                  <DietPlanPage />
                 </ProtectedRoute>
               } 
             />

@@ -1,6 +1,5 @@
-
 import { useState, useEffect } from 'react';
-import { ArrowLeft, Apple, PieChart, Search, Plus, Brain, Utensils } from 'lucide-react';
+import { ArrowLeft, Apple, PieChart, Search, Plus, Brain, Utensils, Salad } from 'lucide-react';
 import Navigation from '@/components/Navigation';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -140,7 +139,6 @@ const Nutrition = () => {
       try {
         setLoading(true);
         
-        // Get today's date in YYYY-MM-DD format
         const today = new Date().toISOString().split('T')[0];
         
         const { data: foodEntries, error } = await supabase
@@ -159,7 +157,6 @@ const Nutrition = () => {
           return;
         }
         
-        // Process the food entries into meal groups
         const mealTypes: { [key: string]: MealData } = {};
         let totalCalories = 0;
         let totalProtein = 0;
@@ -194,7 +191,6 @@ const Nutrition = () => {
           totalFat += entry.fat;
         });
         
-        // Update the nutrition summary
         setNutritionSummary({
           calories: { consumed: Math.round(totalCalories), goal: 2000 },
           protein: { consumed: Math.round(totalProtein), goal: 150 },
@@ -202,7 +198,6 @@ const Nutrition = () => {
           fat: { consumed: Math.round(totalFat), goal: 65 }
         });
         
-        // Convert the meal types object to an array
         const mealArray = Object.values(mealTypes);
         setMeals(mealArray);
         
@@ -216,7 +211,6 @@ const Nutrition = () => {
     fetchFoodEntries();
   }, []);
   
-  // Helper function to format time from ISO string
   const formatTime = (isoString: string) => {
     const date = new Date(isoString);
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -243,6 +237,69 @@ const Nutrition = () => {
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
+        </div>
+
+        <div className="flex justify-between mb-6 gap-2">
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button 
+                  className="relative flex-1 overflow-hidden font-bold text-white shadow-lg transition-all duration-300 
+                            transform hover:scale-105 active:scale-95"
+                  style={{
+                    background: "linear-gradient(45deg, #0f766e, #059669)",
+                    padding: "0.625rem 1.25rem",
+                    borderRadius: "0.75rem"
+                  }}
+                  asChild
+                >
+                  <Link to="/diet-plan" className="flex items-center justify-center">
+                    <Salad className="h-5 w-5 mr-2" />
+                    <span>AI Diet Plan</span>
+                  </Link>
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Get a personalized diet plan based on your profile!</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+          
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <HoverCard>
+                  <HoverCardTrigger asChild>
+                    <Button 
+                      className="relative flex-1 overflow-hidden font-bold text-white shadow-lg transition-all duration-300 
+                                transform hover:scale-105 active:scale-95"
+                      style={{
+                        background: "linear-gradient(45deg, #0f766e, #059669)",
+                        padding: "0.625rem 1.25rem",
+                        borderRadius: "0.75rem"
+                      }}
+                      asChild
+                    >
+                      <Link to="/food-tracking" className="flex items-center justify-center">
+                        <Utensils className="h-5 w-5 mr-2" />
+                        <span>Track Food</span>
+                        <Brain className="h-4 w-4 text-white/80 ml-1" />
+                      </Link>
+                    </Button>
+                  </HoverCardTrigger>
+                  <HoverCardContent className="p-3 w-56 text-center">
+                    <div className="text-sm font-medium">AI-Powered Meal Tracking!</div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Just add your food name and serving size, our AI will calculate all your macros automatically.
+                    </p>
+                  </HoverCardContent>
+                </HoverCard>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Let AI track your nutrition!</p>
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
 
         <NutritionSummary {...nutritionSummary} />
@@ -288,42 +345,6 @@ const Nutrition = () => {
         
         <div className="mb-4 flex justify-between items-center">
           <h2 className="text-sm font-medium text-fit-muted">Today's Meals</h2>
-          
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <HoverCard>
-                  <HoverCardTrigger asChild>
-                    <Button 
-                      className="relative overflow-hidden font-bold text-white shadow-lg transition-all duration-300 
-                                transform hover:scale-105 active:scale-95"
-                      style={{
-                        background: "linear-gradient(45deg, #0f766e, #059669)",
-                        padding: "0.625rem 1.25rem",
-                        borderRadius: "0.75rem"
-                      }}
-                      asChild
-                    >
-                      <Link to="/food-tracking" className="flex items-center">
-                        <Utensils className="h-5 w-5 mr-1" />
-                        <span className="mr-1">Smart Add Meal</span>
-                        <Brain className="h-4 w-4 text-white/80" />
-                      </Link>
-                    </Button>
-                  </HoverCardTrigger>
-                  <HoverCardContent className="p-3 w-56 text-center">
-                    <div className="text-sm font-medium">AI-Powered Meal Tracking!</div>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Just add your food name and serving size, our AI will calculate all your macros automatically.
-                    </p>
-                  </HoverCardContent>
-                </HoverCard>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Let AI track your nutrition!</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
         </div>
         
         {loading ? (
