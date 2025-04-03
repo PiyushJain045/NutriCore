@@ -61,7 +61,7 @@ const DietPlan = () => {
       }
       
       if (data) {
-        setDietPlan(data);
+        setDietPlan(data as DietPlanData);
       }
     } catch (error) {
       console.error('Error in fetchDietPlan:', error);
@@ -92,21 +92,14 @@ const DietPlan = () => {
         description: "Our AI nutritionist is creating your personalized diet plan. This may take a moment...",
       });
       
-      const response = await fetch('/api/generate-diet-plan', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${await supabase.auth.getSession().then(res => res.data.session?.access_token)}`
-        },
-        body: JSON.stringify({ userId: user.id })
+      const { data: functionData, error: functionError } = await supabase.functions.invoke('generate-diet-plan', {
+        body: { userId: user.id }
       });
       
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to generate diet plan');
+      if (functionError) {
+        console.error('Error invoking generate-diet-plan function:', functionError);
+        throw new Error(functionError.message || 'Failed to generate diet plan');
       }
-      
-      const data = await response.json();
       
       toast({
         title: "Diet plan created!",
