@@ -1,11 +1,66 @@
 
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Loader2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useState } from 'react';
 import Navigation from '@/components/Navigation';
 import DietPlan from '@/components/DietPlan';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
 const DietPlanPage = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  const handleGeneratePlan = async () => {
+    if (!user) {
+      toast({
+        title: "Authentication Required",
+        description: "Please sign in to generate a diet plan.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      setIsGenerating(true);
+      
+      // Call the edge function to generate a diet plan
+      const response = await fetch('/api/generate-diet-plan', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${(await supabase.auth.getSession()).data.session?.access_token}`
+        },
+        body: JSON.stringify({ userId: user.id })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to generate diet plan');
+      }
+
+      const data = await response.json();
+      
+      toast({
+        title: "Success!",
+        description: "Your diet plan has been generated.",
+      });
+      
+      // Force refresh the component to show the new plan
+      window.location.reload();
+    } catch (error: any) {
+      console.error('Error generating diet plan:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to generate diet plan",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-fit-background">
@@ -20,7 +75,14 @@ const DietPlanPage = () => {
       </header>
 
       <main className="pb-20 px-6">
-        <DietPlan />
+        {isGenerating ? (
+          <div className="flex flex-col items-center justify-center py-10 space-y-4">
+            <Loader2 className="h-8 w-8 animate-spin text-fit-purple" />
+            <p>Generating your personalized diet plan...</p>
+          </div>
+        ) : (
+          <DietPlan onGeneratePlan={handleGeneratePlan} />
+        )}
       </main>
 
       <Navigation />

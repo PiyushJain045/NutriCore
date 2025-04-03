@@ -66,9 +66,11 @@ const Nutrition = () => {
               <p className="text-sm text-gray-500 mb-3">
                 Analyze your diet for nutritional balance and recommendations.
               </p>
-              <Button variant="outline" className="w-full flex justify-between items-center">
-                Analyze Diet
-                <ArrowRight className="h-4 w-4" />
+              <Button asChild variant="outline" className="w-full">
+                <Link to="/nutrition-analysis" className="flex justify-between items-center">
+                  Analyze Diet
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
               </Button>
             </CardContent>
           </Card>
