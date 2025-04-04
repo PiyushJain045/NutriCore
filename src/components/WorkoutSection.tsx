@@ -32,6 +32,14 @@ const WorkoutSection = () => {
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
+  const handleWorkoutStart = (workoutId: number) => {
+    navigate(`/workout/${workoutId}`);
+  };
+
+  const handleAIPoseTryClick = () => {
+    navigate('/workouts', { state: { openTrackablePoses: true } });
+  };
+
   return (
     <section className="px-6 py-4 animate-slide-up" style={{ animationDelay: '400ms' }}>
       <div className="flex justify-between items-center mb-3">
@@ -64,7 +72,7 @@ const WorkoutSection = () => {
             <Button 
               className="rounded-xl text-xs h-8 px-3"
               style={{ backgroundColor: `${workout.color}`, color: "white" }}
-              onClick={() => navigate('/workouts/1')}
+              onClick={() => handleWorkoutStart(workout.id)}
             >
               Start
             </Button>
@@ -84,7 +92,7 @@ const WorkoutSection = () => {
         </div>
         <Button 
           className="rounded-xl text-xs h-8 px-3 bg-fit-accent hover:bg-fit-accent/90"
-          onClick={() => navigate('/workouts')}
+          onClick={handleAIPoseTryClick}
         >
           Try
         </Button>

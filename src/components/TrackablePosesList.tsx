@@ -1,4 +1,5 @@
-import React from 'react';
+
+import React, { useState } from 'react';
 import { X, ChevronRight, Camera, Dumbbell, Activity } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -6,6 +7,7 @@ import {
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
+import PoseDetection from './PoseDetection';
 
 interface PoseCategory {
   id: string;
@@ -77,6 +79,16 @@ const getDifficultyColor = (difficulty: string) => {
 };
 
 const TrackablePosesList: React.FC<TrackablePosesListProps> = ({ onClose }) => {
+  const [selectedPose, setSelectedPose] = useState<string | null>(null);
+
+  const handlePoseClick = (poseName: string) => {
+    setSelectedPose(poseName);
+  };
+
+  const handlePoseClose = () => {
+    setSelectedPose(null);
+  };
+
   return (
     <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm animate-in fade-in">
       <div className="fixed inset-x-0 top-0 bottom-0 z-50 h-full">
@@ -112,6 +124,7 @@ const TrackablePosesList: React.FC<TrackablePosesListProps> = ({ onClose }) => {
                         <div 
                           key={pose.id} 
                           className="flex items-center justify-between p-3 rounded-lg hover:bg-fit-card/80 cursor-pointer"
+                          onClick={() => handlePoseClick(pose.name)}
                         >
                           <div className="flex items-center gap-3">
                             <div className="h-10 w-10 rounded-lg bg-fit-card flex items-center justify-center">
@@ -137,6 +150,10 @@ const TrackablePosesList: React.FC<TrackablePosesListProps> = ({ onClose }) => {
           </div>
         </div>
       </div>
+      
+      {selectedPose && (
+        <PoseDetection poseName={selectedPose} onClose={handlePoseClose} />
+      )}
     </div>
   );
 };
