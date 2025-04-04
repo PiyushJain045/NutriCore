@@ -24,6 +24,14 @@ const PoseDetection: React.FC<PoseDetectionProps> = ({ poseName, onClose }) => {
   useEffect(() => {
     const loadModel = async () => {
       try {
+        // Initialize TensorFlow.js before loading the model
+        await tf.ready();
+        console.log("TensorFlow.js initialized successfully");
+        
+        // Set the backend to webgl (more reliable than the default)
+        await tf.setBackend('webgl');
+        console.log("Backend set to:", tf.getBackend());
+        
         // Load the model
         const loadedModel = await posenet.load({
           architecture: 'MobileNetV1',
@@ -31,29 +39,42 @@ const PoseDetection: React.FC<PoseDetectionProps> = ({ poseName, onClose }) => {
           inputResolution: { width: 640, height: 480 },
           multiplier: 0.75
         });
+        
         setModel(loadedModel);
         setFeedback('Camera ready. Starting detection...');
         
         // Start the webcam
         if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
-          const stream = await navigator.mediaDevices.getUserMedia({
-            video: true,
-            audio: false
-          });
-          
-          if (videoRef.current) {
-            videoRef.current.srcObject = stream;
-            setIsDetecting(true);
-            setFeedback('Analyzing your pose...');
+          try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+              video: true,
+              audio: false
+            });
+            
+            if (videoRef.current) {
+              videoRef.current.srcObject = stream;
+              videoRef.current.onloadedmetadata = () => {
+                if (canvasRef.current && videoRef.current) {
+                  canvasRef.current.width = videoRef.current.videoWidth;
+                  canvasRef.current.height = videoRef.current.videoHeight;
+                  setIsDetecting(true);
+                  setFeedback('Analyzing your pose...');
+                }
+              };
+            }
+          } catch (streamError) {
+            console.error('Error accessing webcam:', streamError);
+            setFeedback('Error: Cannot access your camera');
+            toast.error('Camera access is required for pose detection. Please check your browser permissions.');
           }
         } else {
           setFeedback('Error: Camera access not available');
-          toast.error('Camera access is required for pose detection');
+          toast.error('Your browser does not support webcam access');
         }
       } catch (error) {
         console.error('Error loading PoseNet model:', error);
         setFeedback('Error: Could not load pose detection model');
-        toast.error('Failed to initialize pose detection');
+        toast.error('Failed to initialize pose detection. Please try again later.');
       }
     };
 
@@ -209,12 +230,6 @@ const PoseDetection: React.FC<PoseDetectionProps> = ({ poseName, onClose }) => {
               height="480"
               style={{ display: 'block', width: '100%' }}
               className="rounded-md"
-              onLoadedMetadata={() => {
-                if (canvasRef.current && videoRef.current) {
-                  canvasRef.current.width = videoRef.current.videoWidth;
-                  canvasRef.current.height = videoRef.current.videoHeight;
-                }
-              }}
             />
             <canvas 
               ref={canvasRef}
