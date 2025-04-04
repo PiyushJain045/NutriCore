@@ -5,6 +5,8 @@ import * as posenet from '@tensorflow-models/posenet';
 import { X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { analyzePoseForExercise } from '@/utils/poseAnalyzer';
+import { useSound } from '@/hooks/useSound';
 
 interface PoseDetectionProps {
   poseName: string;
@@ -19,6 +21,18 @@ const PoseDetection: React.FC<PoseDetectionProps> = ({ poseName, onClose }) => {
   const [feedback, setFeedback] = useState('Setting up camera...');
   const [poseCorrect, setPoseCorrect] = useState(false);
   const requestAnimationRef = useRef<number | null>(null);
+  
+  // Exercise tracking states
+  const [repCount, setRepCount] = useState(0);
+  const [maxDepth, setMaxDepth] = useState(0);
+  const [currentPhase, setCurrentPhase] = useState<'up' | 'down' | 'waiting'>('waiting');
+  const lastPositionRef = useRef<number>(0);
+  const repInProgressRef = useRef<boolean>(false);
+  
+  // Voice feedback
+  const { playSound } = useSound();
+  const lastFeedbackTimeRef = useRef<number>(Date.now());
+  const feedbackCooldown = 3000; // 3 seconds between vocal feedback
 
   // Load the model when component mounts
   useEffect(() => {
@@ -59,6 +73,13 @@ const PoseDetection: React.FC<PoseDetectionProps> = ({ poseName, onClose }) => {
                   canvasRef.current.height = videoRef.current.videoHeight;
                   setIsDetecting(true);
                   setFeedback('Analyzing your pose...');
+                  
+                  // Initial voice prompt
+                  if (poseName === "Squat") {
+                    setTimeout(() => {
+                      playSound("Get ready for squats. Stand straight with feet shoulder-width apart.");
+                    }, 1000);
+                  }
                 }
               };
             }
@@ -90,7 +111,7 @@ const PoseDetection: React.FC<PoseDetectionProps> = ({ poseName, onClose }) => {
         cancelAnimationFrame(requestAnimationRef.current);
       }
     };
-  }, []);
+  }, [poseName, playSound]);
 
   // Start pose detection once model is loaded and webcam is ready
   useEffect(() => {
@@ -106,8 +127,16 @@ const PoseDetection: React.FC<PoseDetectionProps> = ({ poseName, onClose }) => {
         // Draw pose keypoints on canvas
         drawPose(pose);
         
-        // Check if the pose is correct (for Downward Dog)
-        analyzePose(pose);
+        // Analyze the pose based on exercise type
+        const analysis = analyzePoseForExercise(pose, poseName);
+        setPoseCorrect(analysis.isCorrect);
+        
+        // Handle squat-specific tracking
+        if (poseName === "Squat") {
+          trackSquatProgress(analysis);
+        } else {
+          setFeedback(analysis.feedback);
+        }
         
         // Continue detection loop
         requestAnimationRef.current = requestAnimationFrame(detectPose);
@@ -118,7 +147,60 @@ const PoseDetection: React.FC<PoseDetectionProps> = ({ poseName, onClose }) => {
     };
 
     detectPose();
-  }, [model, isDetecting]);
+  }, [model, isDetecting, poseName, playSound]);
+
+  // Track squat progress and count reps
+  const trackSquatProgress = (analysis: { isCorrect: boolean; feedback: string; squat?: { depth: number; kneeAngle: number } }) => {
+    if (!analysis.squat) return;
+    
+    const { depth, kneeAngle } = analysis.squat;
+    
+    // Update max depth if this is deeper than before
+    if (depth > maxDepth) {
+      setMaxDepth(depth);
+    }
+    
+    // Use ref to track the current position to detect direction change
+    if (depth > lastPositionRef.current + 5) {
+      // Going down
+      if (currentPhase !== 'down') {
+        setCurrentPhase('down');
+        repInProgressRef.current = true;
+      }
+    } else if (depth < lastPositionRef.current - 5 && repInProgressRef.current) {
+      // Going up after being down
+      if (currentPhase !== 'up') {
+        setCurrentPhase('up');
+        
+        // If we went deep enough and now coming up, count as a rep
+        if (maxDepth > 30) {
+          setRepCount(prev => prev + 1);
+          setMaxDepth(0); // Reset max depth for next rep
+          playSound("Good rep");
+        }
+      }
+    } else if (depth < 10) {
+      // Standing position
+      if (currentPhase !== 'waiting') {
+        setCurrentPhase('waiting');
+        repInProgressRef.current = false;
+      }
+    }
+    
+    lastPositionRef.current = depth;
+    
+    // Provide feedback on form
+    if (!analysis.isCorrect) {
+      const now = Date.now();
+      if (now - lastFeedbackTimeRef.current > feedbackCooldown) {
+        playSound(analysis.feedback);
+        lastFeedbackTimeRef.current = now;
+      }
+    }
+    
+    // Update the visual feedback
+    setFeedback(`${analysis.feedback} | Reps: ${repCount} | Depth: ${Math.round(depth)}% | Knee angle: ${Math.round(kneeAngle)}°`);
+  };
 
   // Draw the pose keypoints on the canvas
   const drawPose = (pose: posenet.Pose) => {
@@ -165,47 +247,25 @@ const PoseDetection: React.FC<PoseDetectionProps> = ({ poseName, onClose }) => {
         ctx.stroke();
       }
     });
-  };
-
-  // Analyze the detected pose and check if it matches Downward Dog
-  const analyzePose = (pose: posenet.Pose) => {
-    // Simple example for "Downward Dog" - these thresholds would need adjustments based on testing
-    if (poseName === "Downward Dog") {
-      const wrists = pose.keypoints.filter(kp => kp.part.includes('Wrist') && kp.score > 0.5);
-      const ankles = pose.keypoints.filter(kp => kp.part.includes('Ankle') && kp.score > 0.5);
-      const hips = pose.keypoints.filter(kp => kp.part.includes('Hip') && kp.score > 0.5);
-      const shoulders = pose.keypoints.filter(kp => kp.part.includes('Shoulder') && kp.score > 0.5);
+    
+    // Draw rep counter and other stats if it's a squat
+    if (poseName === "Squat") {
+      // Draw semi-transparent background for text
+      ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+      ctx.fillRect(10, 10, 300, 80);
       
-      if (wrists.length === 2 && ankles.length === 2 && hips.length === 2 && shoulders.length === 2) {
-        // Calculate if hips are higher than shoulders (characteristic of Downward Dog)
-        const avgHipY = (hips[0].position.y + hips[1].position.y) / 2;
-        const avgShoulderY = (shoulders[0].position.y + shoulders[1].position.y) / 2;
-        
-        // Calculate if arms and legs are straight
-        const armsExtended = wrists.every((wrist, i) => {
-          return Math.abs(wrist.position.y - shoulders[i].position.y) > 100;
-        });
-        
-        const legsExtended = ankles.every((ankle, i) => {
-          return Math.abs(ankle.position.y - hips[i].position.y) > 100;
-        });
-        
-        // Check if the body forms an inverted V-shape
-        const isCorrect = avgHipY < avgShoulderY && armsExtended && legsExtended;
-        
-        setPoseCorrect(isCorrect);
-        
-        if (isCorrect) {
-          setFeedback('Great job! Your Downward Dog pose looks correct.');
-        } else {
-          setFeedback('Adjust your pose. Hips should be higher, arms and legs straight.');
-        }
-      } else {
-        setFeedback('Make sure your full body is visible to the camera');
-        setPoseCorrect(false);
-      }
-    } else {
-      setFeedback(`Analyzing ${poseName} pose...`);
+      // Draw text
+      ctx.font = '20px Arial';
+      ctx.fillStyle = 'white';
+      ctx.fillText(`Reps: ${repCount}`, 20, 40);
+      ctx.fillText(`Depth: ${Math.round(lastPositionRef.current)}%`, 20, 70);
+      
+      // Draw phase indicator
+      ctx.fillStyle = currentPhase === 'down' ? 'yellow' : 
+                      currentPhase === 'up' ? 'green' : 'white';
+      ctx.beginPath();
+      ctx.arc(280, 40, 15, 0, 2 * Math.PI);
+      ctx.fill();
     }
   };
 
