@@ -32,13 +32,13 @@ const Auth = () => {
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-fit-purple-softer/30 to-white pt-10 px-4">
       <Helmet>
-        <title>Authentication | FitHub</title>
+        <title>Authentication | NutriCore</title>
       </Helmet>
       
       <div className="max-w-md mx-auto">
         <Link to="/" className="flex items-center justify-center mb-8">
           <h1 className="text-2xl font-bold text-fit-purple">
-            Fit<span className="text-fit-accent">Hub</span>
+            Nutri<span className="text-fit-accent">Core</span>
           </h1>
         </Link>
         

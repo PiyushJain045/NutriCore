@@ -14,7 +14,7 @@ const Header = () => {
       <div className="max-w-md mx-auto flex justify-between items-center">
         <Link to="/" className="flex items-center">
           <h1 className="text-xl font-bold text-fit-purple">
-            Fit<span className="text-fit-accent">Hub</span>
+            Nutri<span className="text-fit-accent">Core</span>
           </h1>
         </Link>
         
